@@ -1,0 +1,18 @@
+{
+ "nota": "Pausas de lectura (v05). Cada pausa es [compás, pulso, n] en la partitura del v04: desde esa posición todo se corre n compases y la música repite ese compás n veces. 15 compases = 30 s (2:30 -> 3:00).",
+ "holds": [
+  [16, 3.2, 1],
+  [21, 1, 1],
+  [33, 1, 1],
+  [35, 1, 1],
+  [35, 3.5, 2],
+  [42, 2.5, 1],
+  [43, 3, 1],
+  [45, 1, 1],
+  [46, 1, 1],
+  [51, 3.5, 2],
+  [53, 1, 1],
+  [59, 1, 1],
+  [64, 3.5, 1]
+ ]
+}
