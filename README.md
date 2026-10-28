@@ -120,12 +120,15 @@ Propón primero el guion y usa mi identidad visual.
 La selección automática y la sintaxis de invocación dependen del agente. Si admite comandos de skill, usa su sintaxis correspondiente; por ejemplo, `/motion-studio` en Claude Code. En otros entornos, pide que lea el `SKILL.md` instalado y lo aplique.
 
 > [!IMPORTANT]
-> Primero revisas y apruebas el guion. Después se crea el proyecto, se confirma la GPU y comienza la producción.
+> Primero se aclaran el público, el objetivo y el mensaje. El agente presenta un brief, un guion por escenas y una dirección visual; te pregunta antes de crear el proyecto y capturar fotogramas. Después de revisar las pruebas, vuelve a pedir autorización para exportar el borrador, el final o ambos. Estas aprobaciones forman parte de las instrucciones del agente; el script de render no las verifica automáticamente.
+
+No necesitas llegar con referencias: el agente revisa el contexto disponible, propone una dirección y pregunta por las decisiones importantes que falten. Puedes consultar el [proceso de preproducción](motion-studio/references/preproduccion.md) y los [criterios de motion graphics y sus fuentes](motion-studio/references/motion-graphics.md).
 
 El resultado se organiza en una carpeta de video. La plantilla aporta el código base; durante la producción se añaden audio, revisión y exportaciones:
 
 ```text
 mi-video/
+├── BRIEF.md               Idea, guion, fuentes y autorizaciones por versión
 ├── index.html             Composición: window.seek(t) y window.ready
 ├── lib.js                 Easing y aleatoriedad con semilla
 ├── motion.config.json     Resolución, fps, duración, GPU y calidad
@@ -143,13 +146,13 @@ mi-video/
 
 | Etapa | Qué ocurre |
 | :--- | :--- |
-| **01 · Guion** | El agente propone escenas, duración, mensajes y dirección visual. Tú apruebas antes de producir. |
+| **01 · Idea y guion** | Se aclaran público, objetivo, mensaje, formato y estilo. Revisas el brief y las escenas y autorizas los fotogramas de prueba. |
 | **02 · Composición** | Se crea el proyecto desde la plantilla y se anima con una función pura del tiempo. |
-| **03 · Sonido** | Se sintetizan música y SFX, salvo que proporciones una pista; se sincronizan con pulsos medidos y se busca una mezcla a −14 LUFS. |
-| **04 · Revisión** | Auditoría estática, prueba de determinismo y hojas de contacto. Se revisan seis criterios y se corrigen los tres peores hasta alcanzar al menos 8/10 en todos. |
-| **05 · Exportación** | Borrador con CRF 16 o final con CRF 12 y preset `slow`. MP4 con H.264 y `yuv420p`. |
+| **03 · Sonido** | Según el brief, se produce una pieza silenciosa o música/SFX con pulsos medidos y una mezcla a −14 LUFS. |
+| **04 · Revisión** | Pruebas de estilo, auditoría estática, determinismo y hojas de contacto. Se revisan siete criterios, se corrigen problemas y se declaran los pendientes. |
+| **05 · Exportación autorizada** | Tras mostrar las pruebas, el agente pregunta qué exportar: borrador con CRF 16, final con CRF 12 y preset `slow`, o ambos. MP4 con H.264 y `yuv420p`. |
 
-La revisión puntúa atención inicial, legibilidad en móvil, animación, variedad visual, identidad de marca y sincronización audiovisual. Es una evaluación guiada del agente, registrada en `REVISION.md`; no una garantía automática de calidad.
+La revisión puntúa claridad del mensaje, atención inicial, legibilidad en móvil, animación, variedad visual, identidad de marca y sincronización audiovisual. Busca al menos 8/10 con evidencia por escena y propone hasta tres rondas antes de consultar los problemas persistentes. Lo que no pudo observarse queda pendiente. Es una evaluación del agente, registrada en `REVISION.md`; no una garantía automática de calidad. Las imágenes fijas no sustituyen la reproducción del borrador para revisar ritmo y sonido.
 
 <details>
 <summary><strong>Contrato de render y comandos de revisión</strong></summary>
@@ -165,7 +168,7 @@ node render.mjs --sheet
 python sheet.py
 ```
 
-Tras completar la revisión:
+Tras completar la revisión y obtener autorización para el modo correspondiente:
 
 ```bash
 node render.mjs --borrador
@@ -232,6 +235,8 @@ python --version
 | [`motion-studio/scripts/nuevo.py`](motion-studio/scripts/nuevo.py) | Generador de proyectos y detección de GPU. |
 | [`motion-studio/assets/plantilla/`](motion-studio/assets/plantilla/) | Composición base, renderizador y herramientas de revisión. |
 | [`motion-studio/references/gpu.md`](motion-studio/references/gpu.md) | Configuración y diagnóstico de GPU. |
+| [`motion-studio/references/preproduccion.md`](motion-studio/references/preproduccion.md) | Clarificación de la idea, storyboard y aprobaciones antes del render. |
+| [`motion-studio/references/motion-graphics.md`](motion-studio/references/motion-graphics.md) | Criterios visuales y fuentes de la investigación. |
 | [`ejemplo/`](ejemplo/) | Video de XEON y notas de la demo. |
 | [`install.ps1`](install.ps1) / [`install.sh`](install.sh) | Instalación manual con directorio de destino configurable. |
 
