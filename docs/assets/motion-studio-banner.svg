@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="480" viewBox="0 0 1440 480" role="img" aria-labelledby="title desc">
   <title id="title">Motion Studio</title>
-  <desc id="desc">Del guion al último fotograma. Skill para Claude Code. Cabecera oscura con una secuencia de fotogramas en verde menta.</desc>
+  <desc id="desc">Del guion al último fotograma. Skill para agentes de IA. Cabecera oscura con una secuencia de fotogramas en verde menta.</desc>
   <defs>
     <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
       <path d="M 48 0 H 0 V 48" fill="none" stroke="#202D30" stroke-width="1"/>
@@ -9,7 +9,7 @@
   <rect width="1440" height="480" rx="24" fill="#101B1E"/>
   <rect width="1440" height="480" rx="24" fill="url(#grid)"/>
   <rect x="64" y="64" width="8" height="20" rx="2" fill="#A8F0C6"/>
-  <text x="88" y="80" fill="#A8F0C6" font-family="Segoe UI,Arial,sans-serif" font-size="17" letter-spacing="4">CLAUDE CODE / AGENT SKILL</text>
+  <text x="88" y="80" fill="#A8F0C6" font-family="Segoe UI,Arial,sans-serif" font-size="17" letter-spacing="4">AGENT SKILL / VIDEO CREATION</text>
   <text x="60" y="197" fill="#F4F0E8" font-family="Segoe UI,Arial,sans-serif" font-size="91" font-weight="800" letter-spacing="-5">Motion Studio</text>
   <text x="64" y="257" fill="#BFCAC7" font-family="Segoe UI,Arial,sans-serif" font-size="29">Del guion al último fotograma.</text>
   <path d="M64 321 H717" stroke="#374849" stroke-width="1"/>

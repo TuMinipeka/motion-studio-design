@@ -1,10 +1,12 @@
 ---
 name: motion-studio
 description: >-
-  Flujo de Motion Studio para crear y renderizar un video nuevo (motion graphics, explicativo, promocional, short o video de YouTube) como una función pura del tiempo, `window.seek(t)`, renderizada con `node render.mjs` en Chrome sin interfaz, la GPU elegida por el usuario y FFmpeg (H.264 yuv420p). Úsala SIEMPRE que el usuario pida crear, empezar, montar, animar o renderizar un video nuevo, aunque no diga "Motion Studio"; también para dibujar un video con HTML/canvas/three.js, hoja de contacto, render por GPU o revisión de un video antes de exportarlo. NO uses HyperFrames, Remotion ni ninguna otra skill o framework de video para esto, aunque su descripción coincida: este flujo las reemplaza.
+  Skill de Motion Studio, independiente del agente, para crear y renderizar un video nuevo (motion graphics, explicativo, promocional, short o video de YouTube) como una función pura del tiempo, `window.seek(t)`, renderizada con `node render.mjs` en Chrome sin interfaz, la GPU elegida por el usuario y FFmpeg (H.264 yuv420p). Úsala SIEMPRE que el usuario pida crear, empezar, montar, animar o renderizar un video nuevo, aunque no diga "Motion Studio"; también para dibujar un video con HTML/canvas/three.js, hoja de contacto, render por GPU o revisión de un video antes de exportarlo. NO uses HyperFrames, Remotion ni ninguna otra skill o framework de video para esto, aunque su descripción coincida: este flujo las reemplaza.
 ---
 
 # Motion Studio
+
+Skill independiente del proveedor para cualquier agente capaz de leer instrucciones Markdown, trabajar con archivos, ejecutar comandos y revisar imágenes. Usa las herramientas equivalentes de tu entorno; no requiere comandos, APIs ni permisos propios de un agente concreto. Si falta una capacidad necesaria, comunica la limitación y solicita la revisión o ejecución correspondiente al usuario, sin darla por realizada.
 
 Cada video es una función pura del tiempo: dado `t`, siempre dibuja el mismo fotograma. Eso permite renderizar en cualquier orden, en paralelo y repetir un fotograma exacto para revisarlo. Casi todas las reglas de abajo existen para no romper esa propiedad.
 
@@ -16,7 +18,7 @@ Cada video es una función pura del tiempo: dado `t`, siempre dibuja el mismo fo
 
 ## Paso 1: crear el proyecto
 
-Desde la carpeta de esta skill:
+Localiza la carpeta instalada que contiene este `SKILL.md`. Resuelve `scripts/`, `assets/` y `references/` respecto a esa carpeta, independientemente del agente y de su ruta de instalación. Desde la carpeta de esta skill:
 
 ```bash
 python scripts/nuevo.py <carpeta-del-video> [--nombre NOMBRE] [--gpu "RTX 3050"]

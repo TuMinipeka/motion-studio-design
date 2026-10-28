@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://claude.com/claude-code"><img src="https://img.shields.io/badge/Claude_Code-Agent_Skill-D97757?style=flat-square" alt="Skill para Claude Code"></a>
+  <a href="https://agentskills.io"><img src="https://img.shields.io/badge/Agent_Skills-Multiagente-A8F0C6?style=flat-square" alt="Skill para agentes de IA"></a>
   <img src="https://img.shields.io/badge/Render-Playwright_%2B_FFmpeg-99E5C1?style=flat-square" alt="Render con Playwright y FFmpeg">
   <a href="LICENSE"><img src="https://img.shields.io/badge/Licencia-MIT-EAE5DC?style=flat-square" alt="Licencia MIT"></a>
 </p>
@@ -12,51 +12,55 @@
   <a href="#instala-motion-studio">Instalación</a> · <a href="#úsala">Uso</a> · <a href="#mira-un-resultado">Demo</a> · <a href="#cómo-funciona">Cómo funciona</a> · <a href="#requisitos">Requisitos</a>
 </p>
 
-# /motion-studio
+# Motion Studio
 
 **Tu idea, convertida en movimiento. Tú decides cada fotograma.**
 
-Motion Studio es una **skill para Claude Code** que guía la creación de videos con HTML y JavaScript: guion, animación, música sintetizada, revisión visual y exportación MP4. Cada fotograma depende de `window.seek(t)`, una función del tiempo que permite volver al mismo instante y comprobar el resultado.
+Motion Studio es una **skill para agentes de IA**, independiente del proveedor, que guía la creación de videos con HTML y JavaScript: guion, animación, música sintetizada, revisión visual y exportación MP4. Cada fotograma depende de `window.seek(t)`, una función del tiempo que permite volver al mismo instante y comprobar el resultado.
 
 El flujo usa Chrome sin interfaz con Playwright, la GPU que elijas y FFmpeg. No requiere un framework de video.
 
 ## Mira un resultado
 
-[![Fotograma del video de XEON creado con Motion Studio. Haz clic para abrir el MP4.](docs/assets/xeon-preview.jpg)](ejemplo/XEON_motion_ejemplo.mp4)
+[![Vista previa animada de XEON: identidad visual, conversación, existencias y cálculo de una cotización. Haz clic para abrir el video completo.](docs/assets/xeon-preview.gif)](ejemplo/XEON_motion_ejemplo.mp4)
 
-**[Ver el video de XEON →](ejemplo/XEON_motion_ejemplo.mp4)** · 3 minutos · 1080p · 30 fps
+**Escenas reales de un video creado con esta skill.** Un vistazo al diseño, la animación y la presentación del producto en 16 segundos, en bucle y sin sonido.
 
-La demo incluida es una copia ligera del video promocional de XEON. El original se renderizó a 60 fps con CRF 12. Consulta los [detalles del ejemplo](ejemplo/README.md).
+**[Ver el video completo con audio →](ejemplo/XEON_motion_ejemplo.mp4)** · 3 minutos · 1080p · 30 fps · [Vista estática](docs/assets/xeon-preview.jpg)
+
+La vista previa y el MP4 proceden de la revisión v2 del video de XEON. La animación pesa aproximadamente **4 MB** y se muestra como imagen dentro del README; su reproducción depende de las preferencias de movimiento de GitHub. Consulta los [detalles del ejemplo](ejemplo/README.md).
 
 ## Instala /motion-studio
 
-Desde la carpeta del proyecto donde usarás Claude Code:
+Desde la carpeta del proyecto donde usarás tu agente:
 
 ```bash
-npx skills add TuMinipeka/motion-studio-design --skill motion-studio --agent claude-code --copy
+npx skills add TuMinipeka/motion-studio-design --skill motion-studio --copy
 ```
 
-El comando descarga la skill **`motion-studio`** y la instala para **Claude Code** en el proyecto actual, bajo `.claude/skills/motion-studio/`. `--copy` copia los archivos y evita depender de enlaces simbólicos, especialmente en Windows. Si `npx` pide descargar el paquete `skills`, acepta para ejecutar su CLI.
+El comando descarga la skill **`motion-studio`** para el proyecto actual. Desde una terminal interactiva puedes elegir los agentes de destino; al ejecutarlo dentro de un agente, la CLI puede detectarlo automáticamente. `--copy` copia los archivos y evita depender de enlaces simbólicos, especialmente en Windows. Si `npx` pide descargar el paquete `skills`, acepta para ejecutar su CLI.
+
+Para seleccionar un agente concreto, añade `--agent` con su identificador. Por ejemplo, `--agent claude-code`, `--agent cursor` o `--agent gemini-cli`. Consulta la [lista de agentes y rutas de instalación](https://github.com/vercel-labs/skills/blob/main/docs/agents.md) para elegir el tuyo. La compatibilidad del instalador no equivale a una prueba del flujo de video en cada agente.
 
 Para tenerla disponible en **todos tus proyectos**, añade `--global`:
 
 ```bash
-npx skills add TuMinipeka/motion-studio-design --skill motion-studio --agent claude-code --copy --global
+npx skills add TuMinipeka/motion-studio-design --skill motion-studio --copy --global
 ```
 
-Así se instala en `~/.claude/skills/motion-studio/` (`%USERPROFILE%\.claude\skills\motion-studio\` en Windows). Abre una sesión nueva de Claude Code al terminar.
+La ruta global depende del agente seleccionado. Abre una sesión nueva de tu agente al terminar si no recarga las skills automáticamente.
 
 **Comprueba la instalación:**
 
 ```bash
 # Instalación en el proyecto
-npx skills list --agent claude-code
+npx skills list
 
 # Instalación global
-npx skills list --agent claude-code --global
+npx skills list --global
 ```
 
-`motion-studio` debe aparecer en la lista. Para consultar las skills del repositorio sin instalarlas:
+`motion-studio` debe aparecer en la lista. Puedes filtrar por agente añadiendo `--agent` con su identificador. Para consultar las skills del repositorio sin instalarlas:
 
 ```bash
 npx skills add TuMinipeka/motion-studio-design --list
@@ -75,30 +79,34 @@ git clone https://github.com/TuMinipeka/motion-studio-design.git
 cd motion-studio-design
 ```
 
-Windows (PowerShell), instalación global:
+Los scripts copian la carpeta completa a `~/.agents/skills/motion-studio/` por defecto. Esa ubicación sirve para agentes que la reconozcan; para cualquier otro, indica su directorio de skills.
+
+Windows (PowerShell):
 
 ```powershell
 .\install.ps1
 ```
 
-macOS / Linux, instalación global:
+macOS / Linux:
 
 ```bash
 bash ./install.sh
 ```
 
-Para limitarla a este proyecto, usa `.\install.ps1 -Destino .claude\skills` o `bash ./install.sh .claude/skills`.
+Para limitarla a este proyecto, usa `.\install.ps1 -Destino .agents\skills` o `bash ./install.sh .agents/skills`. Puedes sustituir ese destino por el que requiera tu agente (por ejemplo, `.claude/skills` para Claude Code).
 
-Estos scripts reemplazan la copia instalada de `motion-studio`. Abre una sesión nueva de Claude Code al terminar.
+Estos scripts reemplazan la copia instalada de `motion-studio`. Recarga las skills o abre una sesión nueva de tu agente al terminar.
+
+Si tu agente no tiene descubrimiento de skills, indícale que lea `motion-studio/SKILL.md` y siga sus referencias relativas, conservando la carpeta completa con `scripts/`, `assets/` y `references/`.
 
 </details>
 
 ## Úsala
 
-En Claude Code, dentro de tu proyecto:
+En tu agente, dentro del proyecto, usa una petición en lenguaje natural:
 
 ```text
-/motion-studio Crea un video de 20 segundos para presentar mi producto.
+Usa la skill motion-studio para crear un video de 20 segundos de mi producto.
 Quiero un guion por escenas, tipografía expresiva y música sintetizada.
 ```
 
@@ -109,7 +117,7 @@ Crea un video promocional de mi aplicación con Motion Studio.
 Propón primero el guion y usa mi identidad visual.
 ```
 
-La skill está descrita para que Claude Code la seleccione cuando pidas crear un video nuevo. La invocación `/motion-studio` permite elegirla directamente.
+La selección automática y la sintaxis de invocación dependen del agente. Si admite comandos de skill, usa su sintaxis correspondiente; por ejemplo, `/motion-studio` en Claude Code. En otros entornos, pide que lea el `SKILL.md` instalado y lo aplique.
 
 > [!IMPORTANT]
 > Primero revisas y apruebas el guion. Después se crea el proyecto, se confirma la GPU y comienza la producción.
@@ -135,7 +143,7 @@ mi-video/
 
 | Etapa | Qué ocurre |
 | :--- | :--- |
-| **01 · Guion** | Claude propone escenas, duración, mensajes y dirección visual. Tú apruebas antes de producir. |
+| **01 · Guion** | El agente propone escenas, duración, mensajes y dirección visual. Tú apruebas antes de producir. |
 | **02 · Composición** | Se crea el proyecto desde la plantilla y se anima con una función pura del tiempo. |
 | **03 · Sonido** | Se sintetizan música y SFX, salvo que proporciones una pista; se sincronizan con pulsos medidos y se busca una mezcla a −14 LUFS. |
 | **04 · Revisión** | Auditoría estática, prueba de determinismo y hojas de contacto. Se revisan seis criterios y se corrigen los tres peores hasta alcanzar al menos 8/10 en todos. |
@@ -189,7 +197,7 @@ El render informa del dispositivo WebGL real y avisa si obtiene otra GPU o Swift
 
 | Herramienta | Para qué se necesita |
 | :--- | :--- |
-| [Claude Code](https://claude.com/claude-code) | Leer y ejecutar la skill. |
+| Un agente con soporte para Agent Skills o instrucciones Markdown | Leer la skill, trabajar con archivos, ejecutar comandos y revisar imágenes, directamente o con ayuda del usuario si falta alguna capacidad. |
 | Node.js **22.20 o posterior**, con npm/npx | Ejecutar la CLI `skills` y el render JavaScript. |
 | FFmpeg y FFprobe en el `PATH` | Codificar el MP4 y comprobar el archivo final. |
 | Playwright y Chromium | Capturar los fotogramas en Chrome sin interfaz. |
@@ -220,12 +228,12 @@ python --version
 
 | Ruta | Contenido |
 | :--- | :--- |
-| [`motion-studio/SKILL.md`](motion-studio/SKILL.md) | Instrucciones que carga Claude Code. |
+| [`motion-studio/SKILL.md`](motion-studio/SKILL.md) | Instrucciones independientes del agente. |
 | [`motion-studio/scripts/nuevo.py`](motion-studio/scripts/nuevo.py) | Generador de proyectos y detección de GPU. |
 | [`motion-studio/assets/plantilla/`](motion-studio/assets/plantilla/) | Composición base, renderizador y herramientas de revisión. |
 | [`motion-studio/references/gpu.md`](motion-studio/references/gpu.md) | Configuración y diagnóstico de GPU. |
 | [`ejemplo/`](ejemplo/) | Video de XEON y notas de la demo. |
-| [`install.ps1`](install.ps1) / [`install.sh`](install.sh) | Instalación manual para Claude Code. |
+| [`install.ps1`](install.ps1) / [`install.sh`](install.sh) | Instalación manual con directorio de destino configurable. |
 
 ---
 
