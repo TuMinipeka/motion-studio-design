@@ -1,0 +1,7 @@
+{
+  "nota": "PLANTILLA: sustituye por la cuadrícula MEDIDA de tu música (no la supuesta). beats = segundos de cada pulso; los golpes de sonido y los cambios visuales se anclan aquí.",
+  "bpm": 120,
+  "beatsPerBar": 4,
+  "bars": 3,
+  "beats": [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5]
+}

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<title>Motion Studio · plantilla</title>
+<style>html, body { margin: 0; background: #0B0D10; } canvas { display: block; }</style>
+<canvas id="c"></canvas>
+<script src="lib.js"></script>
+<script>
+// PLANTILLA: reemplaza render(t) por el video real. Contrato (lo exige render.mjs):
+//   · window.seek(t) dibuja el fotograma del instante t, sin leer nada que no sea t.
+//   · window.ready = true cuando todo está cargado (fuentes, imágenes, modelos).
+//   · si algo falla al cargar: window.loadError = 'mensaje'.
+// Prohibido durante el render: transiciones CSS, setTimeout, requestAnimationFrame, Math.random, estado entre fotogramas.
+(async () => {
+  const cfg = await (await fetch('motion.config.json')).json();
+  const W = cfg.video.ancho, H = cfg.video.alto;
+  const cv = document.getElementById('c'); cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+
+  // Una tipografía para títulos y otra para la interfaz: cárgalas aquí con FontFace desde assets/
+  //   const titulo = new FontFace('Titulo', 'url(assets/Titulo.ttf)'); await titulo.load(); document.fonts.add(titulo);
+  await document.fonts.ready;
+
+  const ACENTO = '#2F6BFF';   // un único color de acento, salvo que el proyecto indique otra cosa
+
+  function render(t) {
+    ctx.fillStyle = '#0B0D10'; ctx.fillRect(0, 0, W, H);
+    // ruido sembrado: 40 marcas que siempre caen en el mismo sitio
+    ctx.fillStyle = 'rgba(242,245,250,0.18)';
+    for (let i = 0; i < 40; i++) ctx.fillRect(srand(1, i) * W, srand(2, i) * H, 6, 6);
+    // algo nuevo cada 2-4 s: una barra por segmento de 3 s
+    const seg = Math.floor(t / 3), local = t - seg * 3;
+    const k = easeOutCubic(prog(local, 0, 0.8));
+    ctx.fillStyle = ACENTO; ctx.fillRect(160, 420 + seg * 120, lerp(0, 900, k), 28);
+    ctx.fillStyle = '#F2F5FA'; ctx.font = '600 56px system-ui, sans-serif'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText(`plantilla · t = ${t.toFixed(2)} s`, 160, 380);
+  }
+
+  window.seek = t => render(t);
+  window.seek(0);
+  window.ready = true;
+})().catch(e => { window.loadError = String(e && e.stack || e); });
+</script>
