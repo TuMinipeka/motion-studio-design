@@ -4,6 +4,12 @@ Las entradas describen cambios del repositorio, no versiones publicadas ni garan
 
 ## Sin versión publicada — 2026-11-02
 
+### Convención de commits y documentación continua
+
+- Se añaden `CONTRIBUTING.md` y `AGENTS.md` para mantener Conventional Commits, agrupar cambios por propósito y registrar mejoras junto con su código. La historia publicada se conserva.
+- El README enlaza el changelog y la guía de contribución. Las entradas separan comportamiento, comprobaciones y límites; no se asigna una versión de lanzamiento inexistente.
+- Validación: enlaces locales, bloques Markdown y `git diff --check`. La convención de mensajes se revisa manualmente; no se añadió un hook automático.
+
 ### Audio, ritmo y diagnóstico del render
 
 - Se añade `audio/musica.py` a la plantilla: síntesis con semilla, escritura de pulsos en `beats.json`, medición de una pista externa y mezcla opcional de voz con reducción de música. Se busca −14 LUFS mediante medición de FFmpeg.

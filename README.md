@@ -248,6 +248,8 @@ Las herramientas compartidas viven en `~/.motion-studio`; puedes cambiar la ruta
 | [`motion-studio/references/avisos-creativos.md`](motion-studio/references/avisos-creativos.md) | Preguntas breves con recomendaciones comprensibles, decisiones creativas y aprobaciones. |
 | [`ejemplo/`](ejemplo/) | Video de XEON y notas de la demo. |
 | [`install.ps1`](install.ps1) / [`install.sh`](install.sh) | Instalación manual con directorio de destino configurable. |
+| [`CHANGELOG.md`](CHANGELOG.md) | Registro de mejoras, verificaciones y limitaciones. |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | Convención de commits y documentación de cambios. |
 
 ---
 
