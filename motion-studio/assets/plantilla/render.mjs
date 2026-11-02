@@ -1,6 +1,7 @@
 // Motion Studio · render determinista de un video que es una función pura de t.
 //
 //   node render.mjs --frames=0,1.5,3      fotogramas sueltos        -> review/frames/
+//   node render.mjs --prueba=2,6          prueba de movimiento, sin audio (max. 10 s) -> review/pruebas/
 //   node render.mjs --sheet               un fotograma por pulso    -> review/beats/ (luego: python sheet.py)
 //   node render.mjs --determinismo        comprueba que un fotograma depende solo de t (ver abajo)  [--t=0,1.5,3]
 //   node render.mjs --borrador            video completo, calidad de borrador (crf 16)
@@ -39,6 +40,24 @@ function cargarConfig() {
 }
 const cfg = cargarConfig();
 const { ancho: W, alto: H, fps: FPS, duracion: DUR } = cfg.video;
+
+// Validar el intervalo antes de abrir navegadores. Es una prueba corta, no una exportación completa.
+const prueba = arg('prueba');
+let rangoPrueba;
+if (prueba !== null) {
+  const partes = typeof prueba === 'string' ? prueba.split(',') : [];
+  const [inicio, fin] = partes.map(Number);
+  if (partes.length !== 2 || partes.some(s => !s.trim()) || !Number.isFinite(inicio) || !Number.isFinite(fin)
+    || inicio < 0 || fin <= inicio || fin > DUR || fin - inicio > 10) {
+    console.error('Usa --prueba=inicio,fin: 0 <= inicio < fin <= duracion; intervalo maximo de 10 s.');
+    process.exit(1);
+  }
+  if (['frames', 'sheet', 'determinismo', 'borrador', 'final'].some(k => arg(k) !== null)) {
+    console.error('--prueba se ejecuta sin otros modos de render.'); process.exit(1);
+  }
+  rangoPrueba = [Math.ceil(inicio * FPS), Math.ceil(fin * FPS)];
+  if (rangoPrueba[1] <= rangoPrueba[0]) { console.error('El intervalo no contiene fotogramas.'); process.exit(1); }
+}
 
 // ── Playwright (se resuelve hacia arriba desde esta carpeta; ver README de la skill) ──
 let chromium;
@@ -118,8 +137,8 @@ function lufs(archivo) {
 }
 
 try {
-  if (!arg('frames') && !arg('sheet') && !arg('determinismo') && !arg('borrador') && !arg('final')) {
-    console.log('Uso: node render.mjs --frames=t1,t2 | --sheet | --determinismo | --borrador | --final   [--workers=N] [--gpu=modo]');
+  if (!arg('frames') && !rangoPrueba && !arg('sheet') && !arg('determinismo') && !arg('borrador') && !arg('final')) {
+    console.log('Uso: node render.mjs --frames=t1,t2 | --prueba=inicio,fin | --sheet | --determinismo | --borrador | --final   [--workers=N] [--gpu=modo]');
   } else {
     await comprobarGpu();
     if (arg('frames')) {
@@ -127,6 +146,33 @@ try {
       const out = path.join(root, 'review', 'frames'); fs.mkdirSync(out, { recursive: true });
       for (const s of String(arg('frames')).split(',')) { const t = +s; await foto(page, t, path.join(out, `t${t.toFixed(2).padStart(6, '0')}.png`)); }
       console.log('frames ->', out);
+    } else if (rangoPrueba) {
+      const [desde, hasta] = rangoPrueba;
+      const out = path.join(root, 'review', 'pruebas'); fs.mkdirSync(out, { recursive: true });
+      const salida = path.join(out, `movimiento-${desde}-${hasta}.mp4`), parcial = salida + '.part.mp4';
+      const page = await abrirPagina();
+      const ff = spawn('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'image2pipe', '-c:v', 'png',
+        '-framerate', String(FPS), '-i', '-', '-an', '-c:v', 'libx264', '-preset', 'fast', '-crf', '20',
+        '-pix_fmt', 'yuv420p', '-movflags', '+faststart', parcial], { stdio: ['pipe', 'inherit', 'inherit'] });
+      const terminado = new Promise((resolve, reject) => {
+        ff.once('error', reject);
+        ff.once('close', code => code === 0 ? resolve() : reject(new Error(`FFmpeg fallo en la prueba (${code})`)));
+      });
+      terminado.catch(() => {});
+      ff.stdin.on('error', () => {});
+      try {
+        for (let i = desde; i < hasta; i++) {
+          const buf = await foto(page, i / FPS);
+          await new Promise((resolve, reject) => ff.stdin.write(buf, err => err ? reject(err) : resolve()));
+        }
+        ff.stdin.end(); await terminado;
+        fs.renameSync(parcial, salida);
+        console.log(`OK prueba sin audio: ${salida} · ${(hasta - desde) / FPS} s · ${hasta - desde} fotogramas`);
+      } finally {
+        if (ff.exitCode === null) { ff.stdin.destroy(); ff.kill(); }
+        await terminado.catch(() => {});
+        await page.close();
+      }
     } else if (arg('determinismo')) {
       // Un fotograma debe depender solo de t. Se comprueba con el hash de cada captura:
       //  1) el mismo t dos veces seguidas en una página (detecta estado que se arrastra entre fotogramas);

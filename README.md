@@ -120,15 +120,20 @@ Propón primero el guion y usa mi identidad visual.
 La selección automática y la sintaxis de invocación dependen del agente. Si admite comandos de skill, usa su sintaxis correspondiente; por ejemplo, `/motion-studio` en Claude Code. En otros entornos, pide que lea el `SKILL.md` instalado y lo aplique.
 
 > [!IMPORTANT]
-> Primero se aclaran el público, el objetivo y el mensaje. El agente presenta un brief, un guion por escenas y una dirección visual; te pregunta antes de crear el proyecto y capturar fotogramas. Después de revisar las pruebas, vuelve a pedir autorización para exportar el borrador, el final o ambos. Estas aprobaciones forman parte de las instrucciones del agente; el script de render no las verifica automáticamente.
+> Primero se aclaran el público, el objetivo, el mensaje y el lenguaje audiovisual de la referencia. El agente presenta un brief y un guion con acciones; te pregunta antes de crear el proyecto, capturar fotogramas y generar una prueba animada corta. Validas su movimiento antes de extenderlo a toda la pieza. Después pide autorización para exportar el borrador, el final o ambos. Estas aprobaciones son instrucciones del agente; el renderizador no las verifica automáticamente.
 
 No necesitas llegar con referencias: el agente revisa el contexto disponible, propone una dirección y pregunta por las decisiones importantes que falten. Puedes consultar el [proceso de preproducción](motion-studio/references/preproduccion.md) y los [criterios de motion graphics y sus fuentes](motion-studio/references/motion-graphics.md).
+
+Una referencia de un corto con personajes requiere analizar actuación, entorno y montaje; compartir sus colores o su tema no basta. La [guía de dirección de movimiento](motion-studio/references/direccion-movimiento.md) explica cómo detectar una deriva hacia diapositivas y comprobar una muestra en reproducción. El 2D y el 3D son elecciones del encargo; ninguno garantiza por sí solo el acabado.
+
+**No necesitas conocer animación.** El agente dirige la realización y utiliza los avisos de preguntas con opciones que ofrezca tu entorno. Te propone alternativas creativas concretas, recomienda la más adecuada y explica lo que verás o sentirás. Resuelve cámara, poses y transiciones sin preguntarte por cada técnica. Si el agente no dispone de avisos nativos, usa mensajes breves con las mismas opciones. Consulta los [ejemplos de avisos creativos](motion-studio/references/avisos-creativos.md).
 
 El resultado se organiza en una carpeta de video. La plantilla aporta el código base; durante la producción se añaden audio, revisión y exportaciones:
 
 ```text
 mi-video/
 ├── BRIEF.md               Idea, guion, fuentes y autorizaciones por versión
+├── STORYBOARD.md          Planos, acciones, poses, cámara, transiciones y audio
 ├── index.html             Composición: window.seek(t) y window.ready
 ├── lib.js                 Easing y aleatoriedad con semilla
 ├── motion.config.json     Resolución, fps, duración, GPU y calidad
@@ -146,13 +151,11 @@ mi-video/
 
 | Etapa | Qué ocurre |
 | :--- | :--- |
-| **01 · Idea y guion** | Se aclaran público, objetivo, mensaje, formato y estilo. Revisas el brief y las escenas y autorizas los fotogramas de prueba. |
-| **02 · Composición** | Se crea el proyecto desde la plantilla y se anima con una función pura del tiempo. |
-| **03 · Sonido** | Según el brief, se produce una pieza silenciosa o música/SFX con pulsos medidos y una mezcla a −14 LUFS. |
-| **04 · Revisión** | Pruebas de estilo, auditoría estática, determinismo y hojas de contacto. Se revisan siete criterios, se corrigen problemas y se declaran los pendientes. |
-| **05 · Exportación autorizada** | Tras mostrar las pruebas, el agente pregunta qué exportar: borrador con CRF 16, final con CRF 12 y preset `slow`, o ambos. MP4 con H.264 y `yuv420p`. |
+| **Preproducción** | El agente aclara la idea, estudia la referencia y recomienda una dirección. Prepara el brief y un storyboard con acciones, poses, encuadres, cámara, transiciones y sonido. Revisas una propuesta comprensible y autorizas las pruebas. |
+| **Producción** | Se crea el proyecto y una muestra que resuelve las dificultades principales. Tras validar su movimiento, se desarrolla la animación con el lenguaje aprobado. El audio responde al brief y el render sigue siendo una función pura del tiempo. |
+| **Postproducción** | Se revisan montaje, ritmo, continuidad, legibilidad y sonido junto con las pruebas técnicas. Se corrigen problemas por plano/tiempo y, con tu autorización, se exporta borrador, final o ambos. MP4 con H.264 y `yuv420p`; CRF 16 en borrador y CRF 12/preset `slow` en final. |
 
-La revisión puntúa claridad del mensaje, atención inicial, legibilidad en móvil, animación, variedad visual, identidad de marca y sincronización audiovisual. Busca al menos 8/10 con evidencia por escena y propone hasta tres rondas antes de consultar los problemas persistentes. Lo que no pudo observarse queda pendiente. Es una evaluación del agente, registrada en `REVISION.md`; no una garantía automática de calidad. Las imágenes fijas no sustituyen la reproducción del borrador para revisar ritmo y sonido.
+La revisión puntúa claridad del mensaje, atención inicial, legibilidad en móvil, acción y fluidez, puesta en escena (encuadres, cámara, poses y transiciones), identidad de marca y sincronización audiovisual. Busca al menos 8/10 con evidencia por escena y propone hasta tres rondas antes de consultar los problemas persistentes. Lo que no pudo observarse queda pendiente. Es una evaluación del agente, registrada en `REVISION.md`; no una garantía automática de calidad. Las imágenes fijas no sustituyen la reproducción del borrador para revisar ritmo y sonido.
 
 <details>
 <summary><strong>Contrato de render y comandos de revisión</strong></summary>
@@ -164,6 +167,7 @@ Desde la carpeta del video:
 ```bash
 node auditar.mjs
 node render.mjs --determinismo
+node render.mjs --prueba=2,6  # intervalo autorizado, hasta 10 s; MP4 sin audio
 node render.mjs --sheet
 python sheet.py
 ```
@@ -237,6 +241,8 @@ python --version
 | [`motion-studio/references/gpu.md`](motion-studio/references/gpu.md) | Configuración y diagnóstico de GPU. |
 | [`motion-studio/references/preproduccion.md`](motion-studio/references/preproduccion.md) | Clarificación de la idea, storyboard y aprobaciones antes del render. |
 | [`motion-studio/references/motion-graphics.md`](motion-studio/references/motion-graphics.md) | Criterios visuales y fuentes de la investigación. |
+| [`motion-studio/references/direccion-movimiento.md`](motion-studio/references/direccion-movimiento.md) | Análisis audiovisual de referencias, acciones y prueba animada antes de extender el estilo. |
+| [`motion-studio/references/avisos-creativos.md`](motion-studio/references/avisos-creativos.md) | Preguntas breves con recomendaciones comprensibles, decisiones creativas y aprobaciones. |
 | [`ejemplo/`](ejemplo/) | Video de XEON y notas de la demo. |
 | [`install.ps1`](install.ps1) / [`install.sh`](install.sh) | Instalación manual con directorio de destino configurable. |
 

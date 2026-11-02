@@ -2,6 +2,8 @@
 
 Consulta esta guía para convertir el brief en decisiones visuales y revisar si la animación ayuda a entender el mensaje.
 
+Cuando haya referencias de estilo o señales de una presentación de diapositivas, aplica también [direccion-movimiento.md](direccion-movimiento.md). Las imágenes fijas y el determinismo no permiten aprobar la calidad del movimiento.
+
 ## Qué caracteriza este lenguaje
 
 Motion graphics es diseño gráfico en el tiempo: tipografía, formas, iconos, imágenes, interfaces o datos se animan para comunicar. Puede combinar 2D y 3D, sonido e imagen real; no exige personajes, partículas, una cámara 3D ni movimiento permanente.
