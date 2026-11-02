@@ -17,9 +17,13 @@
   const cv = document.getElementById('c'); cv.width = W; cv.height = H;
   const ctx = cv.getContext('2d');
 
-  // Una tipografía para títulos y otra para la interfaz: cárgalas aquí con FontFace desde assets/
-  //   const titulo = new FontFace('Titulo', 'url(assets/Titulo.ttf)'); await titulo.load(); document.fonts.add(titulo);
+  // Una tipografía para títulos y otra para la interfaz: cárgalas aquí con FontFace desde assets/ o desde
+  // /node_modules: las fuentes de preparar.py (inter, bebas-neue, permanent-marker… ver Paso 0 del SKILL.md) ya están ahí:
+  //   const titulo = new FontFace('Titulo', 'url(/node_modules/@fontsource/inter/files/inter-latin-800-normal.woff2)');
+  //   await titulo.load(); document.fonts.add(titulo);
   await document.fonts.ready;
+  // Todo texto pasa por texto()/numero() de lib.js: fillText directo bajo escala o rotación no es determinista.
+  const { texto } = crearTexto(ctx);
 
   const ACENTO = '#2F6BFF';   // ejemplo técnico: reemplazar por la dirección aprobada
 
@@ -37,6 +41,7 @@
   }
 
   function render(t) {
+    ctx.reset();   // el estado del contexto (lineCap, textAlign, font, transformación…) no pasa de un fotograma a otro
     ctx.fillStyle = '#0B0D10'; ctx.fillRect(0, 0, W, H);
     const p = clamp(t / cfg.video.duracion), s = sujeto(p);
     const abierto = s.apertura * (1 - s.cierre);
@@ -54,8 +59,8 @@
     const r = s.radio, cuadrado = s.cierre;
     ctx.fillStyle = ACENTO; ctx.beginPath();
     ctx.roundRect(-r, -r, r * 2, r * 2, Math.max(1, r * (1 - cuadrado))); ctx.fill(); ctx.restore();
-    ctx.fillStyle = '#A9B4C0'; ctx.font = `500 ${Math.max(12, H * 0.022)}px system-ui, sans-serif`;
-    ctx.fillText('PLANTILLA TÉCNICA · reemplazar por la acción del brief', W * 0.05, H * 0.91);
+    texto('PLANTILLA TÉCNICA · reemplazar por la acción del brief', `500 ${Math.round(Math.max(12, H * 0.022))}px system-ui, sans-serif`,
+      '#A9B4C0', Math.round(W * 0.05), Math.round(H * 0.91), { align: 'left' });
   }
 
   window.seek = t => render(t);

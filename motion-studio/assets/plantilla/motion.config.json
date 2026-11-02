@@ -12,5 +12,6 @@
   },
   "salida": { "carpeta": "exportaciones", "nombre": "video" },
   "workers": 6,
-  "revision": { "desfase": 0.2 }
+  "revision": { "desfase": 0.2 },
+  "ritmo": { "umbralMicro": 1.5, "rachaMuertaMax": 4, "microMax": 40, "planoMedioMax": 5 }
 }

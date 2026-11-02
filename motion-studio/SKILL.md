@@ -22,6 +22,38 @@ Asume la dirección creativa y técnica. El usuario no necesita saber de animaci
 
 Las fases organizan las decisiones y el trabajo dentro de los cuatro pasos siguientes. Reutiliza lo ya aprobado; no añadas consultas por rutina ni entregables que no ayuden a realizar o revisar la pieza.
 
+## Paso 0: herramientas
+
+Esta skill trabaja con herramientas concretas y el resultado depende de usarlas todas:
+- `render.mjs` (Chrome sin interfaz + GPU + FFmpeg) para fotogramas, pruebas y exportaciones.
+- `auditar.mjs` y `--determinismo` para el contrato.
+- `--ritmo`/`ritmo.py` para el ritmo.
+- `sheet.py` para las hojas de contacto.
+- `audio/musica.py` para música, voz y −14 LUFS.
+- Las fuentes instaladas para la tipografía.
+
+Al empezar cualquier video, comprueba que están listas. Desde la carpeta de esta skill:
+
+```bash
+python scripts/preparar.py --comprobar   # rápido; código 1 si falta algo
+```
+
+- **Si falta algo de nivel usuario** (Playwright, Chromium, fuentes, numpy, Pillow), ejecuta `python scripts/preparar.py` sin opciones. Se instala en las herramientas compartidas (`~/.motion-studio`, o `MOTION_STUDIO_HOME`), que usan todos los proyectos.
+- **Si faltan Node.js o FFmpeg,** son programas del sistema: pide permiso al usuario antes de `python scripts/preparar.py --sistema` (winget, brew o apt), o dale el comando que indica el script.
+- **No sustituyas una herramienta que falta** por otra vía, como capturas manuales, otro framework o una revisión "a ojo" en lugar de `--ritmo`. Si no se puede instalar, dilo y detente en ese paso.
+
+`nuevo.py` ejecuta esta preparación al crear cada proyecto.
+
+**Fuentes disponibles** (en `/node_modules/@fontsource/<nombre>/files/`, sin instalar nada más):
+- **Interfaz y texto:** `inter`, `space-grotesk`, `montserrat`.
+- **Titulares:** `bebas-neue`, `anton`, `archivo-black`.
+- **Editorial:** `dm-serif-display`, `playfair-display`.
+- **Rotulador:** `permanent-marker`.
+- **Píxel:** `press-start-2p`, `silkscreen`.
+- **Monoespaciada:** `jetbrains-mono`.
+
+Elige del brief una para títulos y otra para la interfaz. Si la marca exige otra, instálala en el proyecto con `npm i @fontsource/<nombre>`.
+
 ## Antes de empezar
 
 1. **Aclara la idea y el lenguaje antes de producir.** Lee `references/preproduccion.md` y `references/direccion-movimiento.md`. Revisa el contexto disponible y separa hechos, preferencias y supuestos. Define público, objetivo, mensaje principal, canal, duración, formato, tono, marca y audio. Si hay referencia, observa su acción, actuación, espacio y montaje: no basta con adoptar su tema o colores. Distingue infografía, tipografía cinética, demo de interfaz y corto narrativo con personajes. Pregunta solo por decisiones importantes que falten; si no hay referencias, propón una dirección concreta. Presenta un guion con acciones y estados antes/después, además de texto, composición, sonido y tiempos. No inventes funciones, métricas ni llamadas a la acción del producto.
@@ -34,10 +66,10 @@ Las fases organizan las decisiones y el trabajo dentro de los cuatro pasos sigui
 Localiza la carpeta instalada que contiene este `SKILL.md`. Resuelve `scripts/`, `assets/` y `references/` respecto a esa carpeta, independientemente del agente y de su ruta de instalación. Desde la carpeta de esta skill:
 
 ```bash
-python scripts/nuevo.py <carpeta-del-video> [--nombre NOMBRE] [--gpu "RTX 3050"]
+python scripts/nuevo.py <carpeta-del-video> [--nombre NOMBRE] [--gpu "RTX 3050"] [--duracion 75] [--fps 60] [--vertical] [--sin-preparar]
 ```
 
-Copia `assets/plantilla/` a la carpeta del video, detecta las GPU y escribe la elegida en `motion.config.json`. Si hay varias y no pasaste `--gpu`, elige la dedicada y lo avisa: confírmalo con el usuario. Avisa también de lo que falte (`node`, `ffmpeg`, Playwright, Pillow).
+Copia `assets/plantilla/` a la carpeta del video, detecta las GPU y escribe la elegida en `motion.config.json`, junto con la duración, los fps y la orientación del brief (`--vertical` = 1080×1920). Si hay varias GPU y no pasaste `--gpu`, elige la dedicada y lo avisa: confírmalo con el usuario. Después ejecuta `preparar.py`: instala lo que falte a nivel de usuario y comprueba Node, FFmpeg y la GPU real (con `--sin-preparar` solo comprueba).
 
 Guarda en `BRIEF.md` la dirección aprobada, sus fuentes, decisiones y alcance autorizado, con las palabras del usuario que lo confirman; en `STORYBOARD.md`, el guion por planos descrito en `references/preproduccion.md`. Antes de crear el proyecto, presenta ambos en conversación para revisarlos. Ajusta resolución, duración y fps de `motion.config.json` al brief antes de la primera captura; los valores de la plantilla son ejemplos.
 
@@ -48,14 +80,16 @@ Qué contiene el proyecto:
 | Archivo | Para qué |
 |---|---|
 | `index.html` | El video: define `window.seek(t)` y `window.ready`. Es una plantilla; se reemplaza `render(t)`. |
-| `lib.js` | `mulberry32`, `srand`, easing y utilidades puras. |
-| `render.mjs` | `--frames`, `--prueba=inicio,fin` (máximo 10 s, sin audio), `--sheet`, `--determinismo`, `--borrador`, `--final`. Lee `motion.config.json`. |
-| `auditar.mjs` | Auditor estático del contrato: busca `setTimeout`, `requestAnimationFrame`, `Math.random`, transiciones CSS y relojes reales en el código. |
+| `lib.js` | `mulberry32`, `srand`, easing, utilidades puras y `crearTexto(ctx)` (texto determinista para canvas 2D). |
+| `render.mjs` | `--frames`, `--prueba=inicio,fin` (máximo 10 s, sin audio), `--sheet`, `--determinismo`, `--ritmo`, `--borrador`, `--final`. Lee `motion.config.json`. |
+| `auditar.mjs` | Auditor estático del contrato: busca `setTimeout`, `requestAnimationFrame`, `Math.random`, transiciones CSS, relojes reales, `fillText` directo y contextos 2D sin `ctx.reset()`. Ignora los scripts auxiliares `_*.mjs`. |
 | `motion.config.json` | Resolución, fps, duración, GPU, calidad de codificación y salida. |
-| `beats.json` | Cuadrícula de pulsos medida de la música. |
+| `beats.json` | Cuadrícula de pulsos de la música; la escribe `audio/musica.py`. |
+| `audio/musica.py` | Sintetiza música y efectos sobre la cuadrícula, mide los pulsos de una pista del usuario (`--pista`), mezcla una narración con ducking (`--voz`), deja `audio/final.wav` a −14 LUFS y verifica que la cuadrícula cae sobre los golpes reales. |
 | `sheet.py` | Arma la hoja de contacto con los fotogramas por pulso. |
+| `ritmo.py` | Mide el ritmo de un video (movimiento por segundo, tramos muertos, cortes y duración de plano) y falla si se sale de `motion.config.json` → `ritmo`. Con `--referencia ... --calibrar` toma los umbrales de videos de referencia. |
 
-Requisitos del equipo: Node, FFmpeg/FFprobe, `npm i playwright` + `npx playwright install chromium` (en el proyecto o en una carpeta superior), y `pip install pillow` para la hoja.
+Requisitos del equipo: los prepara `scripts/preparar.py` (Paso 0). `render.mjs` usa el Playwright del proyecto si lo hay y, si no, el de las herramientas compartidas. Sirve `/node_modules/...` desde el proyecto o, si el archivo no está allí, desde esas herramientas (así llegan las fuentes). Los scripts de diagnóstico que escribas van dentro del proyecto con un nombre que empiece por `_`. Para usar Playwright desde ellos, cárgalo con `createRequire(path.join(os.homedir(), '.motion-studio', 'package.json'))('playwright')` como hace `render.mjs`.
 
 ## Paso 2: construir el video
 
@@ -63,6 +97,8 @@ Requisitos del equipo: Node, FFmpeg/FFprobe, `npm i playwright` + `npx playwrigh
 - Cada fotograma lo dibuja `window.seek(t)` y nada más. No leas relojes, no guardes estado entre fotogramas.
 - Nada de transiciones CSS, `setTimeout` ni `requestAnimationFrame` durante el renderizado: el render salta de un `t` a otro y esas cosas dependen del tiempo real.
 - Si necesitas ruido, usa solo ruido con semilla determinista (`mulberry32`, ya en `lib.js`). Nunca valores aleatorios sin semilla.
+- En canvas 2D, empieza `render(t)` con `ctx.reset()`: transformación, `lineCap`, `textAlign`, `font` y demás estado del contexto persisten entre llamadas a `seek` y hacen que un fotograma dependa del anterior.
+- Dibuja todo texto con `texto()`/`numero()` de `crearTexto(ctx)` (en `lib.js`), nunca con `fillText` directo. Chrome cachea los glifos según lo que ya dibujó, y el mismo texto bajo escala o rotación puede variar un nivel de color según el orden de los `t`. Los contadores van con `numero()`, que compone carácter a carácter. Redondea las posiciones de texto que se desplazan.
 - Se renderiza con `node render.mjs` y se codifica en H.264, `yuv420p`. Calidad: **CRF 16 en borradores** (`--borrador`) y **CRF 12 con preset slow en el render final** (`--final`); ambos valores se pueden cambiar en `motion.config.json`.
 
 ### Estilo visual
@@ -76,7 +112,13 @@ Requisitos del equipo: Node, FFmpeg/FFprobe, `npm i playwright` + `npx playwrigh
 ### Sonido
 - Respeta el audio acordado en el brief. Si se incluye música y efectos (SFX), se sintetizan por código, a menos que el usuario proporcione una pista. Si se pidió una pieza silenciosa, no añadas audio.
 - Los impactos sonoros se sincronizan con la cuadrícula de tiempos musicales **medida** (`beats.json`), no con la supuesta. Los cambios visuales se anclan a esos mismos pulsos.
+- Usa `audio/musica.py`. Ajusta `BPM`, `ACORDES` y `GOLPES` al storyboard y ejecútalo: escribe `beats.json`, deja `audio/final.wav` a −14 LUFS y comprueba con detección de golpes que la cuadrícula cae sobre el audio. Con una pista del usuario, `python audio/musica.py --pista tema.mp3` mide sus pulsos. Escúchala o contrasta el tempo informado; si sale al doble o a la mitad, repite con `--bpm` aproximado. Guarda los eventos (en pulsos) en un único archivo, p. ej. `eventos.json`, que lean tanto `index.html` como el script de audio: así el sonido y la imagen no se desincronizan al editar.
 - Cuando haya audio, la sonoridad final es de **−14 LUFS**. Entrega la mezcla como `audio/final.wav`: `render.mjs` la une al video y avisa si su medición se aleja de −14.
+
+### Narración
+- Si la referencia o el brief llevan voz, decide con el usuario de dónde sale: una grabación suya, una voz de una herramienta de texto a voz disponible en tu entorno o, si no hay ninguna, texto en pantalla. Declara la limitación; no la sustituyas en silencio.
+- Con voz, el guion manda: fija los tiempos de cada frase a partir del audio de la voz (duración real, no estimada) y ancla subtítulos y acciones a ellos. Mézclala con `python audio/musica.py --voz audio/voz.wav`, que baja la música mientras se habla.
+- Sin voz, los textos en pantalla hacen de narración: frases cortas, dentro de la zona segura inferior, a un tamaño legible en móvil y con tiempo suficiente para leerlas.
 
 ## Paso 3: ciclo de revisión antes de mostrar cualquier resultado
 
@@ -91,7 +133,24 @@ node auditar.mjs                # revisa el código: ERROR si rompe una regla de
 node render.mjs --determinismo  # renderiza los mismos t repetidos y en orden inverso y compara cada fotograma
 ```
 
-Corrige todo ERROR y toda diferencia antes de seguir. Un AVISO se revisa: si el reloj o la animación no afecta al fotograma, se puede dejar, pero hay que saber por qué. Si `--determinismo` falla con el código limpio, suele haber estado que se arrastra entre fotogramas (un acumulador, una caché que cambia) o algo que depende del orden de los `t`.
+Corrige todo ERROR y toda diferencia antes de seguir. Un AVISO se revisa: si el reloj o la animación no afecta al fotograma, se puede dejar, pero hay que saber por qué. Los 10 instantes por defecto están repartidos por igual; añade con `--t=...` al menos uno por escena y los instantes con texto que cambia (contadores, títulos con escala).
+
+Si `--determinismo` falla, guarda ambas capturas en `review/determinismo/` y dice cuántos píxeles difieren, el Δ máximo y la zona:
+- **Δ de 1–2 niveles en bordes de texto:** es la caché de glifos. Dibuja ese texto con `crearTexto` en lugar de `fillText`.
+- **Δ grande en formas o colores:** hay estado que se arrastra entre fotogramas (un acumulador, una caché que cambia, un contexto 2D sin `ctx.reset()`) o algo que depende del orden de los `t` o del reloj.
+
+Abre las dos imágenes de la zona antes de cambiar código.
+
+**Mide el ritmo antes de puntuar la animación.** Una hoja de contacto muestra cada fotograma bien compuesto, pero no deja ver que 20 segundos seguidos son casi iguales. Con autorización para capturar fotogramas:
+
+```bash
+node render.mjs --ritmo     # vista del video entero a 10 fps -> review/ritmo/vista.mp4, y la analiza con ritmo.py
+```
+
+`ritmo.py` informa del movimiento mediano por segundo, el porcentaje de tiempo con solo micromovimiento (respiración, deriva lenta), la racha muerta más larga, los cortes por minuto y la duración media de plano. Dibuja además una línea de tiempo y falla si se superan los umbrales de `motion.config.json` → `ritmo`.
+- **Los umbrales vienen del estilo buscado.** Si el usuario da videos de referencia, calíbralos con `python ritmo.py --referencia a.mp4 b.mp4 --calibrar`. Así el umbral es el peor caso de esas referencias, no un número inventado.
+- **Si falla, no se arregla con efectos.** No añadas grano, partículas ni zooms lentos: cuentan como movimiento sin aportar nada. En cada tramo muerto que indique: cambia de escala o de ángulo cada 2–4 s, haz que el personaje actúe, agranda la acción principal hasta que se lea en un móvil y mantén un indicador que cambie.
+- **Un tramo quieto puede ser una decisión.** Si es intencionado (una pausa dramática, un silencio), anótalo en `REVISION.md` con su motivo y su duración.
 
 1. Renderiza un fotograma por cada pulso musical y reúnelos en una hoja de contacto:
    ```bash
@@ -103,7 +162,7 @@ Corrige todo ERROR y toda diferencia antes de seguir. Un AVISO se revisa: si el 
    - Claridad del mensaje principal para el público del brief.
    - Capacidad de la apertura para atraer y orientar según el público y canal del brief.
    - Legibilidad en pantallas de teléfonos móviles.
-   - Calidad de la acción, continuidad y fluidez, observadas en reproducción.
+   - Calidad de la acción, continuidad y fluidez, observadas en reproducción. No pases de 6/10 si `--ritmo` falla.
    - Puesta en escena: encuadres, cámara, poses y transiciones que aporten al relato.
    - Fidelidad a la identidad de marca.
    - Sincronización entre sonido y animación.
@@ -122,6 +181,7 @@ node render.mjs --final      # crf 12 + slow                          -> exporta
 - Al arrancar imprime el renderizador WebGL real. Comprueba que sea la GPU esperada; si avisa de SwiftShader o de otra GPU, detente y arréglalo (`references/gpu.md`) en vez de esperar un render lento.
 - Renderiza por segmentos de 5 s: si se interrumpe, al relanzar solo rehace los que faltan.
 - Verifica el archivo final con `ffprobe` (códec h264, `yuv420p`, resolución y fps de `motion.config.json`) antes de entregarlo.
+- Pasa `python ritmo.py exportaciones/<nombre>_borrador.mp4` al borrador: confirma con el video codificado lo que midió `--ritmo`.
 - Reproduce el borrador, o la versión disponible dentro del alcance autorizado, para revisar ritmo, transiciones, lectura y audio cuando tu entorno lo permita. Un conjunto de imágenes y una medición de LUFS no sustituyen esa revisión; declara cualquier comprobación audiovisual pendiente y solicita ayuda del usuario si hace falta.
 
 ## Ejemplos

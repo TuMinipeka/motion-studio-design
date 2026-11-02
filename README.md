@@ -66,8 +66,16 @@ npx skills list --global
 npx skills add TuMinipeka/motion-studio-design --list
 ```
 
+**Prepara las herramientas.** `npx skills add` solo copia archivos: no ejecuta instaladores. Después, ejecuta una vez el preparador desde la carpeta donde quedó la skill. Cambia `.claude` por la carpeta de tu agente (`.agents`, `.codex`…):
+
+```bash
+python ~/.claude/skills/motion-studio/scripts/preparar.py
+```
+
+Instala Playwright, Chromium, 12 fuentes, numpy y Pillow en `~/.motion-studio`, una carpeta compartida por todos los videos. También comprueba Node.js, FFmpeg (con libx264 y ebur128) y que Chrome obtiene tu GPU. Añade `--sistema` para que instale también Node.js y FFmpeg con winget, brew o apt. Si lo olvidas, el agente lo comprueba y lo ejecuta al empezar el primer video (Paso 0 del `SKILL.md`).
+
 > [!NOTE]
-> Instalar la skill añade instrucciones y plantillas al agente. Las herramientas de render se preparan aparte; consulta [Requisitos](#requisitos). No hace falta publicar un paquete npm propio: `npx` ejecuta la [CLI `skills`](https://github.com/vercel-labs/skills), que instala la habilidad desde GitHub.
+> No hace falta publicar un paquete npm propio: `npx` ejecuta la [CLI `skills`](https://github.com/vercel-labs/skills), que instala la habilidad desde GitHub.
 
 <details>
 <summary><strong>Alternativa: instalar desde una copia local del repositorio</strong></summary>
@@ -95,7 +103,7 @@ bash ./install.sh
 
 Para limitarla a este proyecto, usa `.\install.ps1 -Destino .agents\skills` o `bash ./install.sh .agents/skills`. Puedes sustituir ese destino por el que requiera tu agente (por ejemplo, `.claude/skills` para Claude Code).
 
-Estos scripts reemplazan la copia instalada de `motion-studio`. Recarga las skills o abre una sesión nueva de tu agente al terminar.
+Estos scripts reemplazan la copia instalada de `motion-studio` y después ejecutan `preparar.py`, que deja listas las herramientas. Añade `-Sistema` (PowerShell) o `--sistema` (bash) para instalar también Node.js y FFmpeg. Con `-SinHerramientas`, o con `MOTION_SIN_HERRAMIENTAS=1` en bash, solo se copia la skill. Recarga las skills o abre una sesión nueva de tu agente al terminar.
 
 Si tu agente no tiene descubrimiento de skills, indícale que lea `motion-studio/SKILL.md` y siga sus referencias relativas, conservando la carpeta completa con `scripts/`, `assets/` y `references/`.
 
@@ -206,27 +214,21 @@ El render informa del dispositivo WebGL real y avisa si obtiene otra GPU o Swift
 | :--- | :--- |
 | Un agente con soporte para Agent Skills o instrucciones Markdown | Leer la skill, trabajar con archivos, ejecutar comandos y revisar imágenes, directamente o con ayuda del usuario si falta alguna capacidad. |
 | Node.js **22.20 o posterior**, con npm/npx | Ejecutar la CLI `skills` y el render JavaScript. |
-| FFmpeg y FFprobe en el `PATH` | Codificar el MP4 y comprobar el archivo final. |
+| FFmpeg y FFprobe en el `PATH`, con libx264 y ebur128 | Codificar el MP4, medir la sonoridad y comprobar el archivo final. |
 | Playwright y Chromium | Capturar los fotogramas en Chrome sin interfaz. |
-| Python 3 y Pillow | Crear las hojas de contacto. |
+| Python 3.9+, numpy y Pillow | Hojas de contacto, audio (`musica.py`) y verificación de ritmo (`ritmo.py`). |
+| Fuentes @fontsource | Tipografía de títulos e interfaz sin descargas por proyecto. |
 | GPU con WebGL 2 | Renderizar la composición con aceleración gráfica. |
 
-Después de aprobar el guion y crear la carpeta del video, prepara allí las dependencias de render:
+Todo lo instala y verifica `scripts/preparar.py`. Los instaladores lo ejecutan solos, y `nuevo.py` lo repite al crear cada video:
 
 ```bash
-npm install playwright
-npx playwright install chromium
-python -m pip install pillow
+python scripts/preparar.py              # instala lo que falte a nivel de usuario y verifica todo
+python scripts/preparar.py --comprobar  # solo verifica
+python scripts/preparar.py --sistema    # también Node.js y FFmpeg (winget/brew/apt)
 ```
 
-Verifica que las herramientas externas estén disponibles:
-
-```bash
-node --version
-ffmpeg -version
-ffprobe -version
-python --version
-```
+Las herramientas compartidas viven en `~/.motion-studio`; puedes cambiar la ruta con la variable `MOTION_STUDIO_HOME`. El resultado de la última verificación, incluido el renderizador WebGL detectado, queda en `~/.motion-studio/estado.json`.
 
 > [!NOTE]
 > El render solo se ha probado en **Windows 11, Direct3D 11 y NVIDIA RTX 3050**. Hay instalador para macOS/Linux, pero el render en esos sistemas no está validado. En Windows puedes usar `py -3` si tu instalación de Python no ofrece el comando `python`.
@@ -237,6 +239,7 @@ python --version
 | :--- | :--- |
 | [`motion-studio/SKILL.md`](motion-studio/SKILL.md) | Instrucciones independientes del agente. |
 | [`motion-studio/scripts/nuevo.py`](motion-studio/scripts/nuevo.py) | Generador de proyectos y detección de GPU. |
+| [`motion-studio/scripts/preparar.py`](motion-studio/scripts/preparar.py) | Instalación y verificación de las herramientas (Playwright, Chromium, fuentes, numpy, Pillow, FFmpeg, GPU). |
 | [`motion-studio/assets/plantilla/`](motion-studio/assets/plantilla/) | Composición base, renderizador y herramientas de revisión. |
 | [`motion-studio/references/gpu.md`](motion-studio/references/gpu.md) | Configuración y diagnóstico de GPU. |
 | [`motion-studio/references/preproduccion.md`](motion-studio/references/preproduccion.md) | Clarificación de la idea, storyboard y aprobaciones antes del render. |

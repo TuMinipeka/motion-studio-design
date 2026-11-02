@@ -6,7 +6,10 @@
 // Reglas (ERROR): sin transiciones CSS, sin setTimeout/setInterval, sin requestAnimationFrame y sin aleatorios sin semilla
 // (Math.random, crypto.getRandomValues). Reglas (AVISO): relojes reales (Date.now, new Date, performance.now) y animaciones
 // por tiempo (CSS animation/@keyframes, element.animate), que también hacen que un fotograma dependa de algo más que de t.
-// Se ignoran comentarios y cadenas de texto. No se revisan node_modules, review, exportaciones, audio, assets ni *.min.js.
+// También avisa de texto dibujado con fillText/strokeText fuera de lib.js (la caché de glifos de Chrome lo vuelve no
+// determinista bajo escala o rotación: usa crearTexto) y de un contexto 2D que no se reinicia con ctx.reset().
+// Se ignoran comentarios y cadenas de texto. No se revisan node_modules, review, exportaciones, audio, assets, *.min.js
+// ni los scripts auxiliares cuyo nombre empieza por _ (diagnósticos que no forman parte del video).
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -27,6 +30,7 @@ const REGLAS_JS = [
   ['AVISO', /\bperformance\.now\s*\(/, 'reloj real: un fotograma no debe depender del tiempo de ejecución'],
   ['AVISO', /\.animate\s*\(/, 'animación por tiempo (Web Animations API)'],
   ['AVISO', /\.style\.animation\b/, 'animación CSS asignada por script'],
+  ['AVISO', /\.(fillText|strokeText)\s*\(/, 'fillText/strokeText directo: bajo escala o rotación puede variar entre fotogramas; usa texto()/numero() de crearTexto (lib.js)', 'lib.js'],
 ];
 const REGLAS_CSS = [
   ['ERROR', /\btransition(?:-[a-z]+)?\s*:/, 'transición CSS'],
@@ -55,18 +59,30 @@ const lineaDe = (txt, idx) => txt.slice(0, idx).split('\n').length;
 
 function aplicar(reglas, txt, offsetLinea, archivo, hallazgos) {
   txt.split('\n').forEach((linea, n) => {
-    for (const [nivel, re, msg] of reglas) if (re.test(linea)) hallazgos.push({ nivel, archivo, linea: offsetLinea + n, msg });
+    for (const [nivel, re, msg, excepto] of reglas)
+      if (re.test(linea) && path.basename(archivo) !== excepto) hallazgos.push({ nivel, archivo, linea: offsetLinea + n, msg });
   });
+}
+
+// El estado del contexto 2D (transformación, lineCap, textAlign, font…) persiste entre llamadas a seek(t).
+function revisarContexto(codigo, offsetLinea, archivo, hallazgos) {
+  const m = codigo.match(/getContext\s*\(\s*['"]2d['"]/);
+  if (m && path.basename(archivo) !== 'lib.js' && !/\.reset\s*\(\s*\)/.test(codigo))
+    hallazgos.push({ nivel: 'AVISO', archivo, linea: offsetLinea + lineaDe(codigo, m.index) - 1,
+      msg: 'contexto 2D sin ctx.reset(): su estado pasa de un fotograma a otro; llámalo al inicio de render(t) (un lienzo auxiliar que se dibuja una sola vez al cargar no lo necesita)' });
 }
 
 function revisar(archivo, hallazgos) {
   const src = fs.readFileSync(archivo, 'utf8'), rel = path.relative(raiz, archivo), ext = path.extname(archivo);
-  if (ext === '.js' || ext === '.mjs') aplicar(REGLAS_JS, limpiarJS(src), 1, rel, hallazgos);
+  if (ext === '.js' || ext === '.mjs') { aplicar(REGLAS_JS, limpiarJS(src), 1, rel, hallazgos); revisarContexto(src, 1, rel, hallazgos); }
   else if (ext === '.css') aplicar(REGLAS_CSS, limpiarCSS(src), 1, rel, hallazgos);
   else if (ext === '.html') {
     const html = src.replace(/<!--[\s\S]*?-->/g, m => m.replace(/[^\n]/g, ' '));
     for (const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi))
-      if (!/\bsrc\s*=/.test(m[1])) aplicar(REGLAS_JS, limpiarJS(m[2]), lineaDe(html, m.index + m[0].indexOf('>') + 1), rel, hallazgos);
+      if (!/\bsrc\s*=/.test(m[1])) {
+        const linea = lineaDe(html, m.index + m[0].indexOf('>') + 1);
+        aplicar(REGLAS_JS, limpiarJS(m[2]), linea, rel, hallazgos); revisarContexto(m[2], linea, rel, hallazgos);
+      }
     for (const m of html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi))
       aplicar(REGLAS_CSS, limpiarCSS(m[1]), lineaDe(html, m.index + m[0].indexOf('>') + 1), rel, hallazgos);
     for (const m of html.matchAll(/\bstyle\s*=\s*"([^"]*)"/gi)) aplicar(REGLAS_CSS, m[1], lineaDe(html, m.index), rel, hallazgos);
@@ -77,7 +93,7 @@ function recorrer(dir, hallazgos, contador) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, e.name);
     if (e.isDirectory()) { if (!OMITIR_DIRS.has(e.name)) recorrer(p, hallazgos, contador); }
-    else if (/\.(html|js|mjs|css)$/.test(e.name) && !OMITIR_ARCHIVOS.has(e.name) && !/\.min\./.test(e.name)) { revisar(p, hallazgos); contador.n++; }
+    else if (/\.(html|js|mjs|css)$/.test(e.name) && !OMITIR_ARCHIVOS.has(e.name) && !/\.min\./.test(e.name) && !e.name.startsWith('_')) { revisar(p, hallazgos); contador.n++; }
   }
 }
 

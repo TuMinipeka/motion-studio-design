@@ -4,6 +4,7 @@
 //   node render.mjs --prueba=2,6          prueba de movimiento, sin audio (max. 10 s) -> review/pruebas/
 //   node render.mjs --sheet               un fotograma por pulso    -> review/beats/ (luego: python sheet.py)
 //   node render.mjs --determinismo        comprueba que un fotograma depende solo de t (ver abajo)  [--t=0,1.5,3]
+//   node render.mjs --ritmo               vista a 10 fps del video entero -> review/ritmo/vista.mp4 y `python ritmo.py`
 //   node render.mjs --borrador            video completo, calidad de borrador (crf 16)
 //   node render.mjs --final               video completo, calidad final (crf 12, preset slow)
 //
@@ -13,6 +14,8 @@ import http from 'node:http';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
+import { createRequire } from 'node:module';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -52,17 +55,22 @@ if (prueba !== null) {
     console.error('Usa --prueba=inicio,fin: 0 <= inicio < fin <= duracion; intervalo maximo de 10 s.');
     process.exit(1);
   }
-  if (['frames', 'sheet', 'determinismo', 'borrador', 'final'].some(k => arg(k) !== null)) {
+  if (['frames', 'sheet', 'determinismo', 'ritmo', 'borrador', 'final'].some(k => arg(k) !== null)) {
     console.error('--prueba se ejecuta sin otros modos de render.'); process.exit(1);
   }
   rangoPrueba = [Math.ceil(inicio * FPS), Math.ceil(fin * FPS)];
   if (rangoPrueba[1] <= rangoPrueba[0]) { console.error('El intervalo no contiene fotogramas.'); process.exit(1); }
 }
 
-// ── Playwright (se resuelve hacia arriba desde esta carpeta; ver README de la skill) ──
+// ── Playwright: primero el del proyecto (o una carpeta superior); si no, el de las herramientas compartidas
+// que instala `python scripts/preparar.py` de la skill (MOTION_STUDIO_HOME, por defecto ~/.motion-studio) ──
+const HERRAMIENTAS = process.env.MOTION_STUDIO_HOME || path.join(os.homedir(), '.motion-studio');
 let chromium;
 try { ({ chromium } = await import('playwright')); }
-catch { console.error('Falta Playwright. En la carpeta del proyecto o en una superior:\n  npm i playwright\n  npx playwright install chromium'); process.exit(1); }
+catch {
+  try { ({ chromium } = createRequire(path.join(HERRAMIENTAS, 'package.json'))('playwright')); }
+  catch { console.error(`Falta Playwright. Desde la carpeta de la skill ejecuta:\n  python scripts/preparar.py\n(instala Playwright, Chromium y las fuentes en ${HERRAMIENTAS})`); process.exit(1); }
+}
 
 // ── GPU ──────────────────────────────────────────────────────────────────────
 // Chrome sin interfaz elige la GPU por su cuenta; sin la bandera de alto rendimiento suele quedarse con la integrada.
@@ -82,13 +90,17 @@ const LAUNCH = { headless: true, args: argsGpu(modoGpu) };
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json',
   '.ttf': 'font/ttf', '.otf': 'font/otf', '.woff2': 'font/woff2', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml',
   '.glb': 'model/gltf-binary', '.wav': 'audio/wav', '.mp3': 'audio/mpeg' };
-// /node_modules/... se sirve desde el node_modules más cercano hacia arriba (p. ej. three.js)
-function raizNodeModules() {
-  for (let d = root; ; d = path.dirname(d)) { if (fs.existsSync(path.join(d, 'node_modules'))) return d; if (d === path.dirname(d)) return root; }
+// /node_modules/... se sirve desde el primer node_modules hacia arriba que tenga ese archivo (p. ej. three.js) y,
+// si ninguno lo tiene, desde las herramientas compartidas (fuentes @fontsource instaladas por preparar.py)
+function raizNodeModules(rel) {
+  for (let d = root; ; d = path.dirname(d)) {
+    if (fs.existsSync(path.join(d, '.' + rel))) return d;
+    if (d === path.dirname(d)) return fs.existsSync(path.join(HERRAMIENTAS, '.' + rel)) ? HERRAMIENTAS : root;
+  }
 }
 const server = http.createServer((req, res) => {
   const rel = decodeURIComponent(new URL(req.url, 'http://x').pathname);
-  const base = rel.startsWith('/node_modules/') ? raizNodeModules() : root;
+  const base = rel.startsWith('/node_modules/') ? raizNodeModules(rel) : root;
   const file = path.resolve(base, '.' + (rel === '/' ? '/index.html' : rel));
   if (!file.startsWith(base + path.sep)) { res.writeHead(403).end(); return; }
   fs.readFile(file, (err, b) => {
@@ -137,8 +149,8 @@ function lufs(archivo) {
 }
 
 try {
-  if (!arg('frames') && !rangoPrueba && !arg('sheet') && !arg('determinismo') && !arg('borrador') && !arg('final')) {
-    console.log('Uso: node render.mjs --frames=t1,t2 | --prueba=inicio,fin | --sheet | --determinismo | --borrador | --final   [--workers=N] [--gpu=modo]');
+  if (!arg('frames') && !rangoPrueba && !arg('sheet') && !arg('determinismo') && !arg('ritmo') && !arg('borrador') && !arg('final')) {
+    console.log('Uso: node render.mjs --frames=t1,t2 | --prueba=inicio,fin | --sheet | --determinismo | --ritmo | --borrador | --final   [--workers=N] [--gpu=modo]');
   } else {
     await comprobarGpu();
     if (arg('frames')) {
@@ -182,16 +194,57 @@ try {
       const hash = b => crypto.createHash('sha256').update(b).digest('hex');
       const A = await abrirPagina(), B = await abrirPagina();
       const adelante = {}, repetido = {}, inverso = {};
-      for (const t of lista) { adelante[t] = hash(await foto(A, t)); repetido[t] = hash(await foto(A, t)); }
-      for (const t of [...lista].reverse()) inverso[t] = hash(await foto(B, t));
-      let fallos = 0;
+      for (const t of lista) { adelante[t] = await foto(A, t); repetido[t] = await foto(A, t); }
+      for (const t of [...lista].reverse()) inverso[t] = await foto(B, t);
+      // Si difieren, se guardan ambas capturas y se mide dónde y cuánto: un Δ de 1-2 niveles en bordes de texto suele ser
+      // la caché de glifos (texto con fillText bajo escala: usa crearTexto); un Δ grande, estado o reloj en el código.
+      const out = path.join(root, 'review', 'determinismo'); fs.rmSync(out, { recursive: true, force: true });
+      const comparar = (a, b) => A.evaluate(async ([a, b]) => {
+        const leer = async s => { const im = await createImageBitmap(await (await fetch('data:image/png;base64,' + s)).blob());
+          const c = new OffscreenCanvas(im.width, im.height), x = c.getContext('2d'); x.drawImage(im, 0, 0); return x.getImageData(0, 0, im.width, im.height).data; };
+        const [p, q] = await Promise.all([leer(a), leer(b)]), w = innerWidth;
+        let n = 0, max = 0, x0 = 1e9, y0 = 1e9, x1 = -1, y1 = -1;
+        for (let i = 0; i < p.length; i += 4) {
+          const d = Math.max(Math.abs(p[i] - q[i]), Math.abs(p[i + 1] - q[i + 1]), Math.abs(p[i + 2] - q[i + 2]));
+          if (d) { n++; max = Math.max(max, d); const k = i / 4, x = k % w, y = (k - x) / w; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+        }
+        return { n, max, zona: `${x0},${y0}–${x1},${y1}` };
+      }, [a.toString('base64'), b.toString('base64')]);
+      let fallos = 0, soloBordes = true;
       for (const t of lista) {
-        const ok1 = adelante[t] === repetido[t], ok2 = adelante[t] === inverso[t];
-        if (!ok1 || !ok2) fallos++;
+        const ok1 = hash(adelante[t]) === hash(repetido[t]), ok2 = hash(adelante[t]) === hash(inverso[t]);
         console.log(`t=${t.toFixed(3).padStart(8)}  ${ok1 ? 'igual   ' : 'DISTINTO'} (repetido)   ${ok2 ? 'igual   ' : 'DISTINTO'} (orden inverso)`);
+        if (ok1 && ok2) continue;
+        fallos++; fs.mkdirSync(out, { recursive: true });
+        const otra = ok1 ? inverso[t] : repetido[t], d = await comparar(adelante[t], otra), base = path.join(out, `t${t.toFixed(3)}`);
+        fs.writeFileSync(base + '_a.png', adelante[t]); fs.writeFileSync(base + '_b.png', otra);
+        if (d.max > 2) soloBordes = false;
+        console.log(`           ${d.n} px distintos · Δ máx ${d.max} · zona ${d.zona} -> ${path.relative(root, base)}_a.png / _b.png`);
       }
       console.log(fallos ? `FALLA: ${fallos} de ${lista.length} instantes no son deterministas` : `OK: ${lista.length} instantes idénticos`);
+      if (fallos) console.log(soloBordes
+        ? 'Pista: diferencias de 1-2 niveles. Si la zona es texto, es la caché de glifos: dibuja el texto con crearTexto (lib.js).'
+        : 'Pista: hay estado que se arrastra entre fotogramas (acumuladores, cachés, contexto 2D sin ctx.reset()) o un reloj real.');
       if (fallos) process.exitCode = 1;
+    } else if (arg('ritmo')) {
+      // El ritmo no se ve en una hoja de contacto: se mide sobre el video entero a 10 fps, sin esperar al borrador.
+      const R = 10, n = Math.floor(DUR * R), capturas = new Array(n);
+      const out = path.join(root, 'review', 'ritmo'); fs.mkdirSync(out, { recursive: true });
+      const vista = path.join(out, 'vista.mp4');
+      let next = 0;
+      await Promise.all(Array.from({ length: Math.min(trabajadores(), n) }, async () => {
+        const page = await abrirPagina();
+        while (next < n) { const i = next++; capturas[i] = await foto(page, i / R, undefined, 'jpeg'); }
+        await page.close();
+      }));
+      const ff = spawn('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'image2pipe', '-c:v', 'mjpeg', '-framerate', String(R), '-i', '-',
+        '-vf', 'scale=480:-2', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23', '-pix_fmt', 'yuv420p', vista], { stdio: ['pipe', 'inherit', 'inherit'] });
+      for (const buf of capturas) if (!ff.stdin.write(buf)) await new Promise(r => ff.stdin.once('drain', r));
+      ff.stdin.end(); await new Promise(r => ff.on('close', r));
+      console.log(`vista de ritmo: ${path.relative(root, vista)} · ${n} fotogramas a ${R} fps`);
+      const py = spawnSync(process.platform === 'win32' ? 'python' : 'python3', ['ritmo.py', vista], { cwd: root, stdio: 'inherit' });
+      if (py.error) console.error('No pude ejecutar ritmo.py (¿Python con numpy en el PATH?):', py.error.message);
+      if (py.status) process.exitCode = py.status;
     } else if (arg('sheet')) {
       // un fotograma por pulso, unos instantes después del golpe para ver la reacción
       const beats = JSON.parse(fs.readFileSync(path.join(root, 'beats.json'), 'utf8')).beats;
