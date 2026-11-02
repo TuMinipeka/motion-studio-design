@@ -1,7 +1,10 @@
 # Instala la skill motion-studio para agentes de IA.
 #   .\install.ps1                 -> copia a $HOME\.agents\skills\motion-studio
 #   .\install.ps1 -Destino RUTA   -> usa el directorio de skills que reconozca tu agente
-param([string]$Destino = (Join-Path $HOME '.agents\skills'))
+#   .\install.ps1 -Sistema        -> instala también Node.js y FFmpeg con winget si faltan
+#   .\install.ps1 -SinHerramientas -> solo copia la skill, sin preparar las herramientas
+# Después de copiar, ejecuta scripts\preparar.py: Playwright, Chromium, fuentes, numpy y Pillow, y comprueba FFmpeg y GPU.
+param([string]$Destino = (Join-Path $HOME '.agents\skills'), [switch]$Sistema, [switch]$SinHerramientas)
 
 $origen = Join-Path $PSScriptRoot 'motion-studio'
 if (-not (Test-Path (Join-Path $origen 'SKILL.md'))) { throw "No encuentro motion-studio\SKILL.md junto a este script." }
@@ -24,4 +27,18 @@ if ((Test-Path -LiteralPath $final) -and ((Get-Item -LiteralPath $final -Force).
 if (Test-Path -LiteralPath $final) { Remove-Item -LiteralPath $final -Recurse -Force; Write-Host "Se reemplazó la versión instalada." }
 Copy-Item -LiteralPath $origen -Destination $final -Recurse
 Write-Host "Instalada en $final"
+
+if (-not $SinHerramientas) {
+    $python = @('python', 'py', 'python3') | Where-Object { Get-Command $_ -ErrorAction SilentlyContinue } | Select-Object -First 1
+    if (-not $python) {
+        Write-Warning "No encuentro Python 3: instalalo (winget install Python.Python.3.12) y ejecuta: python `"$final\scripts\preparar.py`""
+    } else {
+        $argumentos = @()
+        if ($python -eq 'py') { $argumentos += '-3' }
+        $argumentos += (Join-Path $final 'scripts\preparar.py')
+        if ($Sistema) { $argumentos += '--sistema' }
+        & $python @argumentos
+        if ($LASTEXITCODE) { Write-Warning "Faltan herramientas: sigue las indicaciones de arriba (o repite con -Sistema)." }
+    }
+}
 Write-Host "Recarga las skills o abre una sesion nueva de tu agente. Si no detecta esta ruta, indica su directorio con -Destino."

@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """Crea la carpeta de un video nuevo desde la plantilla de Motion Studio y configura la GPU.
 
-    python nuevo.py <carpeta> [--nombre NOMBRE] [--gpu "texto del nombre"] [--listar-gpus]
+    python nuevo.py <carpeta> [--nombre NOMBRE] [--gpu "texto del nombre"] [--duracion S] [--fps N] [--vertical]
+                    [--sin-preparar] [--listar-gpus]
 
 - Copia assets/plantilla/ a <carpeta> (no pisa nada: si <carpeta> ya existe y no esta vacia, se detiene).
 - Detecta las GPU del equipo (Windows) y escribe la elegida en <carpeta>/motion.config.json.
   Si hay varias y no usas --gpu, elige la dedicada (NVIDIA > Radeon RX/Arc) y te lo dice: confirmalo con el usuario.
-- Comprueba que Playwright, FFmpeg y Pillow estan disponibles y avisa de lo que falte.
+- Escribe la duracion, los fps y la orientacion del brief (--vertical = 1080x1920) en motion.config.json.
+- Ejecuta preparar.py: instala lo que falte a nivel de usuario (Playwright, Chromium, fuentes, numpy, Pillow) en las
+  herramientas compartidas y comprueba Node, FFmpeg y la GPU. Con --sin-preparar solo comprueba, sin instalar.
 """
 import argparse
 import json
@@ -57,18 +60,12 @@ def elegir(gpus, preferida):
     return mejor, clasificar(mejor)[0], "alto-rendimiento"
 
 
-def comprobar_entorno(destino):
-    avisos = []
-    for exe in ("node", "ffmpeg", "ffprobe"):
-        if not shutil.which(exe):
-            avisos.append(f"falta `{exe}` en el PATH")
-    if not any((d / "node_modules" / "playwright").exists() for d in [destino, *destino.parents]):
-        avisos.append("falta Playwright: en la carpeta del proyecto o en una superior ejecuta `npm i playwright` y `npx playwright install chromium`")
-    try:
-        import PIL  # noqa: F401
-    except ImportError:
-        avisos.append("falta Pillow para sheet.py: `pip install pillow`")
-    return avisos
+def preparar(instalar):
+    """Herramientas compartidas (Playwright, Chromium, fuentes, numpy, Pillow) y comprobación de Node, FFmpeg y GPU.
+    Delegado en preparar.py para que haya una sola definición de lo que necesita la skill."""
+    cmd = [sys.executable, str(Path(__file__).resolve().parent / "preparar.py")] + ([] if instalar else ["--comprobar"])
+    sys.stdout.flush()   # que el resumen del proyecto salga antes que el informe de herramientas
+    return subprocess.run(cmd).returncode == 0
 
 
 def main():
@@ -76,6 +73,10 @@ def main():
     ap.add_argument("carpeta", nargs="?")
     ap.add_argument("--nombre", help="nombre del archivo de salida (por defecto, el de la carpeta)")
     ap.add_argument("--gpu", help="parte del nombre de la GPU a usar, p. ej. \"RTX 3050\"")
+    ap.add_argument("--duracion", type=float, help="segundos del video (la plantilla trae un ejemplo)")
+    ap.add_argument("--fps", type=int, help="fotogramas por segundo, p. ej. 30 o 60")
+    ap.add_argument("--vertical", action="store_true", help="1080x1920 (shorts, reels) en lugar de 1920x1080")
+    ap.add_argument("--sin-preparar", action="store_true", help="no instalar herramientas que falten; solo comprobarlas")
     ap.add_argument("--listar-gpus", action="store_true")
     a = ap.parse_args()
 
@@ -95,15 +96,25 @@ def main():
     cfg = json.loads(ruta.read_text(encoding="utf-8"))
     cfg["gpu"].update({"modo": modo, "coincidir": coincidir, "nombre": nombre_gpu})
     cfg["salida"]["nombre"] = a.nombre or re.sub(r"[^A-Za-z0-9_-]+", "-", destino.name).strip("-") or "video"
+    if a.duracion:
+        cfg["video"]["duracion"] = a.duracion
+    if a.fps:
+        cfg["video"]["fps"] = a.fps
+    if a.vertical:
+        cfg["video"]["ancho"], cfg["video"]["alto"] = 1080, 1920
     ruta.write_text(json.dumps(cfg, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     print(f"Proyecto creado: {destino}")
     print(f"GPU detectadas: {', '.join(gpus) if gpus else 'ninguna'}")
     print(f"GPU configurada: {nombre_gpu or '(automatica)'}  modo={modo}")
+    v = cfg["video"]
+    print(f"Video: {v['ancho']}x{v['alto']} · {v['fps']} fps · {v['duracion']} s"
+          + ("" if a.duracion else "  (duracion de ejemplo: ajustala al brief con --duracion o en motion.config.json)"))
     if len(gpus) > 1 and not a.gpu:
         print("AVISO: hay varias GPU; se eligio la dedicada. Confirma con el usuario y cambia motion.config.json si no es la que quiere.")
-    for av in comprobar_entorno(destino):
-        print("AVISO:", av)
+    print()
+    if not preparar(instalar=not a.sin_preparar):
+        print("AVISO: faltan herramientas (ver arriba). El proyecto está creado, pero no se podrá renderizar hasta resolverlo.")
     return 0
 
 
