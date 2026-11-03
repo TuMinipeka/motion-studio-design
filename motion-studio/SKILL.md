@@ -71,7 +71,7 @@ python scripts/nuevo.py <carpeta-del-video> [--nombre NOMBRE] [--gpu "RTX 3050"]
 
 Copia `assets/plantilla/` a la carpeta del video, detecta las GPU y escribe la elegida en `motion.config.json`, junto con la duración, los fps y la orientación del brief (`--vertical` = 1080×1920). Si hay varias GPU y no pasaste `--gpu`, elige la dedicada y lo avisa: confírmalo con el usuario. Después ejecuta `preparar.py`: instala lo que falte a nivel de usuario y comprueba Node, FFmpeg y la GPU real (con `--sin-preparar` solo comprueba).
 
-Guarda en `BRIEF.md` la dirección aprobada, sus fuentes, decisiones y alcance autorizado, con las palabras del usuario que lo confirman; en `STORYBOARD.md`, el guion por planos descrito en `references/preproduccion.md`. Antes de crear el proyecto, presenta ambos en conversación para revisarlos. Ajusta resolución, duración y fps de `motion.config.json` al brief antes de la primera captura; los valores de la plantilla son ejemplos.
+Guarda en `BRIEF.md` la dirección aprobada, sus fuentes, decisiones y alcance autorizado, con las palabras del usuario que lo confirman; en `STORYBOARD.md`, el guion por planos descrito en `references/preproduccion.md`, con su curva de energía (gancho, re-ganchos, pausas y clímax), cuyos tiempos van también a `motion.config.json` → `curva`. Antes de crear el proyecto, presenta ambos en conversación para revisarlos. Ajusta resolución, duración y fps de `motion.config.json` al brief antes de la primera captura; los valores de la plantilla son ejemplos.
 
 La plantilla es una demostración técnica de continuidad de un objeto; reemplázala por el lenguaje acordado. Canvas 2D, SVG, DOM o Three.js son opciones según el brief, no identidades visuales predeterminadas. Registra también en `BRIEF.md` la ruta de la skill cargada para poder detectar instalaciones antiguas.
 
@@ -80,14 +80,15 @@ Qué contiene el proyecto:
 | Archivo | Para qué |
 |---|---|
 | `index.html` | El video: define `window.seek(t)` y `window.ready`. Es una plantilla; se reemplaza `render(t)`. |
-| `lib.js` | `mulberry32`, `srand`, easing, utilidades puras y `crearTexto(ctx)` (texto determinista para canvas 2D). |
+| `lib.js` | `mulberry32`, `srand`, catálogo `ease`, `claves()` (pose a pose), `resorte()`, `mezclar()`, `ruidoSuave()` y `crearTexto(ctx)` (texto determinista). |
+| `kit/` | Cámara con encuadres, temblor y paralaje (`camara.js`); transiciones y montaje (`transiciones.js`); `ejemplo.html` completo. Guía en `references/kit.md`. No incluye personajes: se diseñan para cada pieza. |
 | `render.mjs` | `--frames`, `--prueba=inicio,fin` (máximo 10 s, sin audio), `--sheet`, `--determinismo`, `--ritmo`, `--borrador`, `--final`. Lee `motion.config.json`. |
 | `auditar.mjs` | Auditor estático del contrato: busca `setTimeout`, `requestAnimationFrame`, `Math.random`, transiciones CSS, relojes reales, `fillText` directo y contextos 2D sin `ctx.reset()`. Ignora los scripts auxiliares `_*.mjs`. |
 | `motion.config.json` | Resolución, fps, duración, GPU, calidad de codificación y salida. |
 | `beats.json` | Cuadrícula de pulsos de la música; la escribe `audio/musica.py`. |
 | `audio/musica.py` | Sintetiza música y efectos sobre la cuadrícula, mide los pulsos de una pista del usuario (`--pista`), mezcla una narración con ducking (`--voz`), deja `audio/final.wav` a −14 LUFS y verifica que la cuadrícula cae sobre los golpes reales. |
 | `sheet.py` | Arma la hoja de contacto con los fotogramas por pulso. |
-| `ritmo.py` | Mide el ritmo de un video (movimiento por segundo, tramos muertos, cortes y duración de plano) y falla si se sale de `motion.config.json` → `ritmo`. Con `--referencia ... --calibrar` toma los umbrales de videos de referencia. |
+| `ritmo.py` | Mide el ritmo de un video (movimiento por segundo, tramos muertos, cortes, duración de plano y curva de energía por tramos frente a la apertura) y falla si se sale de `motion.config.json` → `ritmo` o si la energía decae fuera de las pausas declaradas en `curva`. Con `--referencia ... --calibrar` toma los umbrales de videos de referencia. |
 
 Requisitos del equipo: los prepara `scripts/preparar.py` (Paso 0). `render.mjs` usa el Playwright del proyecto si lo hay y, si no, el de las herramientas compartidas. Sirve `/node_modules/...` desde el proyecto o, si el archivo no está allí, desde esas herramientas (así llegan las fuentes). Los scripts de diagnóstico que escribas van dentro del proyecto con un nombre que empiece por `_`. Para usar Playwright desde ellos, cárgalo con `createRequire(path.join(os.homedir(), '.motion-studio', 'package.json'))('playwright')` como hace `render.mjs`.
 
@@ -102,6 +103,18 @@ Requisitos del equipo: los prepara `scripts/preparar.py` (Paso 0). `render.mjs` 
 - Se renderiza con `node render.mjs` y se codifica en H.264, `yuv420p`. Calidad: **CRF 16 en borradores** (`--borrador`) y **CRF 12 con preset slow en el render final** (`--final`); ambos valores se pueden cambiar en `motion.config.json`.
 
 ### Estilo visual
+- **Parte del kit para el movimiento, la cámara y el montaje.** Lee `references/kit.md` y renderiza `kit/ejemplo.html` (`node render.mjs --pagina=kit/ejemplo.html --frames=1.2,3.6,6.5`) antes de escribir `index.html`. Úsalo para:
+  - **movimiento:** `claves()` con anticipación → acción → rebote (`saleBack`, `resorte()`) → pose mantenida con vida (`ruidoSuave()`);
+  - **cámara:** `encuadre()` desde el sujeto, cambiando de escala o de ángulo cada 2–4 s, con `temblor()` en los impactos y `paralaje()` en el fondo;
+  - **enlaces:** `crearTransiciones().montaje()`.
+- **Los personajes se diseñan para cada pieza**, no salen de una plantilla. Sigue los principios de la sección "Personajes" de `references/kit.md`:
+  - dibuja solo lo que el plano necesita;
+  - evita caminar de frente;
+  - que el cuerpo entero participe del gesto;
+  - movimientos escalonados y en arco;
+  - la emoción, en primeros planos de la cara.
+
+  Mover el personaje solo desplazándolo, animar un brazo con el resto congelado o una cámara que solo hace zoom queda por debajo del nivel de la skill. Prueba el gesto principal con `--prueba` antes de extenderlo a toda la pieza.
 - Convierte el storyboard en acciones con intención narrativa. Aplica los criterios de cámara, poses y montaje de `references/direccion-movimiento.md`; elige técnicas según la referencia y el objetivo. El usuario elige la experiencia creativa, mientras el agente resuelve cómo realizarla.
 - Lee `references/motion-graphics.md` al definir la dirección visual. Usa tipografía, formas, diagramas, datos o interfaces en movimiento para explicar el mensaje. Define un foco principal por escena y qué relación debe comunicar cada animación; no confundas cantidad de efectos con claridad.
 - Evita la receta de titular, panel, etiquetas y fundido repetida en cada escena. No uses gradientes, brillos, partículas o movimientos de cámara como relleno; pueden servir cuando la dirección aprobada los justifique. Una lista de efectos prohibidos no sustituye la puesta en escena: diseña la acción principal y su consecuencia.
@@ -148,9 +161,10 @@ node render.mjs --ritmo     # vista del video entero a 10 fps -> review/ritmo/vi
 ```
 
 `ritmo.py` informa del movimiento mediano por segundo, el porcentaje de tiempo con solo micromovimiento (respiración, deriva lenta), la racha muerta más larga, los cortes por minuto y la duración media de plano. Dibuja además una línea de tiempo y falla si se superan los umbrales de `motion.config.json` → `ritmo`.
+- **La energía se mide por tramos, no en promedio.** `ritmo.py` divide la pieza en tramos de 15 s (una cuarta parte en piezas de menos de 60 s) y los compara con la apertura. Falla si un tramo cae por debajo de la mitad del movimiento de la apertura con al menos un 30 % de tiempo quieto, o si dos tramos seguidos pasan del 50 % de tiempo quieto. Avisa si un re-gancho de `motion.config.json` → `curva` no se ve en el video o si hay demasiado tiempo entre dos. Con sonido, avisa también si los golpes sonoros o el nivel caen tras la apertura, o si el estéreo es estrecho y no cambia. Esa curva se planifica en el storyboard (`references/preproduccion.md`, "Curva de energía y re-ganchos"); aquí solo se comprueba.
 - **Los umbrales vienen del estilo buscado.** Si el usuario da videos de referencia, calíbralos con `python ritmo.py --referencia a.mp4 b.mp4 --calibrar`. Así el umbral es el peor caso de esas referencias, no un número inventado.
 - **Si falla, no se arregla con efectos.** No añadas grano, partículas ni zooms lentos: cuentan como movimiento sin aportar nada. En cada tramo muerto que indique: cambia de escala o de ángulo cada 2–4 s, haz que el personaje actúe, agranda la acción principal hasta que se lea en un móvil y mantén un indicador que cambie.
-- **Un tramo quieto puede ser una decisión.** Si es intencionado (una pausa dramática, un silencio), anótalo en `REVISION.md` con su motivo y su duración.
+- **Un tramo quieto puede ser una decisión.** Si es intencionado (una pausa dramática, un silencio), decláralo en `motion.config.json` → `curva` → `pausas` como `[inicio, fin, "motivo"]` y anótalo en `REVISION.md`. Si la energía decae sin estar planificado, vuelve al storyboard y pon un re-gancho ligado al contenido; no lo tapes con efectos.
 
 1. Renderiza un fotograma por cada pulso musical y reúnelos en una hoja de contacto:
    ```bash

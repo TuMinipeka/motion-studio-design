@@ -9,6 +9,7 @@
 //   node render.mjs --final               video completo, calidad final (crf 12, preset slow)
 //
 // Opciones: --workers=N  --gpu=alto-rendimiento|bajo-consumo|auto|cpu  --swiftshader (= --gpu=cpu)
+//           --pagina=kit/ejemplo.html   renderiza otra página del proyecto en lugar de index.html
 // La configuración vive en motion.config.json (resolución, fps, GPU, calidad, salida).
 import http from 'node:http';
 import crypto from 'node:crypto';
@@ -109,7 +110,7 @@ const server = http.createServer((req, res) => {
   });
 });
 await new Promise(r => server.listen(0, '127.0.0.1', r));
-const url = `http://127.0.0.1:${server.address().port}/`;
+const url = `http://127.0.0.1:${server.address().port}/` + (typeof arg('pagina') === 'string' ? arg('pagina').replace(/^\/+/, '') : '');
 
 // ── navegadores: uno por proceso de render, cada uno con su propio proceso de GPU ──
 const browsers = [];

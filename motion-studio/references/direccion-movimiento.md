@@ -56,6 +56,8 @@ Construye impacto mediante preparación y contraste: una pausa puede dar fuerza 
 
 En producción, usa la muestra para resolver los problemas difíciles de actuación, cámara y conexión entre planos, y extiende solo el lenguaje validado. Conserva proporciones, materiales, iluminación, dirección de movimientos y escala de elementos equivalentes.
 
+Construye siguiendo la curva de energía del storyboard (`preproduccion.md`, "Curva de energía y re-ganchos"). Los re-ganchos y los clímax de acto se animan con el mismo cuidado que la apertura, no con lo que sobra al final. El centro de la pieza no es una lección con diagramas: si un plano explica, el personaje u objeto actúa lo explicado. Al pasar `--ritmo`, revisa la tabla por tramos, no solo la media.
+
 En postproducción, revisa la secuencia completa a velocidad normal: apertura, progresión, pausas y cierre. Comprueba continuidad de poses y espacio, cortes, contacto con objetos, legibilidad y coordinación de imagen/sonido. Registra problemas por plano y tiempo en `REVISION.md`, corrige lo que cambie la experiencia y vuelve a observarlo. Las métricas y pruebas técnicas complementan esa reproducción.
 
 ## 3. Detectar la deriva hacia una presentación
@@ -67,6 +69,7 @@ Replantea la propuesta si, salvo que el usuario haya pedido una presentación, p
 - Solo se anima opacidad, una línea de progreso, un contador, un punto o un personaje pequeño sobre un panel inmóvil.
 - El encuadre no responde a la acción y todas las escenas usan la misma distribución de espacio.
 - Se cambia una escena entera para continuar una acción que podría evolucionar dentro del mismo espacio.
+- La energía se queda en el gancho: después, láminas de título de más de 1,5 s, diagramas fijos de más de 4 s, fondos vacíos entre secciones o personajes pequeños en planos generales largos.
 
 No corrijas esto con movimiento permanente, zoom automático sobre cada lámina o 3D obligatorio. Las pausas y los planos fijos pueden ser deliberados. El criterio es si la acción, su puesta en escena y el montaje comunican el mensaje acordado.
 

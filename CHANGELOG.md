@@ -2,6 +2,56 @@
 
 Las entradas describen cambios del repositorio, no versiones publicadas ni garantías de calidad audiovisual.
 
+## Sin versión publicada — 2026-11-03
+
+### Comprobaciones adicionales al preparar el commit
+
+- Sintaxis Python/JavaScript, configuración JSON, enlaces locales y validación estructural de la skill correctos. La auditoría de la plantilla revisó cinco archivos sin errores ni avisos.
+- El ejemplo del kit pasó seis instantes repetidos y en orden inverso, incluidos 1,15 y 1,16 s, en una copia técnica vertical de 1080 × 1920 a 12 fps usando CPU.
+- Un video sintético de 24 s, con 8 s de movimiento y 16 s de imagen fija, activó la detección de caída de energía. Al declarar esa pausa, dejó de fallar por ese motivo; los demás umbrales se ajustaron en la prueba para aislar ese comportamiento.
+- Estas comprobaciones no repiten las auditorías artísticas o de videos anteriores descritas abajo, ni acreditan la calidad de un encargo nuevo completo.
+
+### Curva de energía: re-ganchos planificados en el storyboard y medidos por tramos
+
+**Problema.** En la auditoría de un video stickman de 121 s hecho por Claude con la skill (6,5/10), los primeros 15 s eran fuertes, pero el resto decaía:
+- El movimiento mediano cayó de 4,5 a 1,1–1,4 en 30–45 s, 60–75 s y 75–90 s, con un 53–60 % de tiempo casi quieto.
+- Los golpes de sonido bajaron un 45 % tras el gancho y el estéreo se quedó estrecho y sin cambios (0,14–0,24).
+- Aun así, `ritmo.py` lo aprobaba, porque la media global de la pieza escondía esos tramos.
+- Nada en la skill pedía planificar re-ganchos ni repartir los recursos de la apertura.
+
+**Qué se añade:**
+- **Preproducción** (`references/preproduccion.md`): sección "Curva de energía y re-ganchos".
+  - La curva se diseña al estructurar el guion: gancho, re-ganchos (cada 8–12 s en piezas de menos de 60 s, cada 15–25 s en las largas), pausas con motivo, clímax de acto y cierre.
+  - Cada re-gancho nace del contenido. Los recursos de la apertura se catalogan y se reparten por los clímax.
+  - Las láminas de título duran 1,5 s como máximo; ningún diagrama fijo pasa de 4 s; el sonido sigue la curva.
+  - Cada plano del storyboard indica su papel en la curva. Los tiempos se copian a `motion.config.json` → `curva`.
+- **`ritmo.py`:** tabla por tramos (15 s, o una cuarta parte en piezas de menos de 60 s) comparada con la apertura.
+  - Falla si un tramo cae por debajo de `caidaMin` (0,5) del movimiento de la apertura con al menos `caidaQuieto` (30 %) de tiempo quieto, o si dos tramos seguidos pasan de `tramoQuietoMax` (50 %) de tiempo quieto.
+  - Las pausas declaradas en `curva.pausas` no cuentan como caída ni como tramo muerto.
+  - Avisa si un re-gancho planificado no tiene corte ni movimiento fuerte, si pasa demasiado tiempo entre re-ganchos (25 s; 12 s en piezas de menos de 60 s) o si un proyecto de más de 20 s no tiene curva.
+  - Con sonido, avisa si los golpes por segundo bajan del 60 % de la apertura, si el nivel cae más de 4 dB o si el estéreo no pasa de 0,3.
+  - `--calibrar` deriva también `caidaMin` y `tramoQuietoMax` de las referencias.
+  - La curva planificada solo se aplica a videos del propio proyecto, no a referencias externas.
+- **`SKILL.md`** (Paso 1 y Paso 3) y **`references/direccion-movimiento.md`**: construir siguiendo la curva, nueva señal de deriva hacia una presentación y declaración de pausas.
+
+**Validación:**
+- El video stickman pasa a fallar en 30–45 s, 60–75 s y 75–90 s, con avisos de densidad sonora y estéreo.
+- Con una curva de prueba en una copia del proyecto:
+  - una pausa declarada en 75–90 s deja de contar;
+  - los huecos de más de 25 s sin re-gancho se avisan;
+  - dos re-ganchos puestos en momentos quietos (36 s y 80 s) se detectan como "no se ve".
+- Nueve shorts propios anteriores (`studio-8bit`, `motion-idea`):
+  - cuatro pasan;
+  - tres fallan por caídas con un 44–60 % de tiempo quieto (dos de ellos ya fallaban por tramos muertos);
+  - uno falla solo por micromovimiento global, como antes;
+  - uno falla por una caída nueva, `ojos-de-perro` (12–24 s, 46 %, 50 % quieto).
+  - El cierre calmado pero en movimiento de `tunel-a-traves-de-la-tierra` (43 %, 10 % quieto) ya no falla gracias a la condición de tiempo quieto.
+
+**Límites:**
+- Los umbrales son una primera calibración sobre pocos videos; conviene recalibrarlos con referencias del estilo buscado.
+- La detección de golpes sonoros es heurística: por eso el sonido solo avisa.
+- La regla de re-ganchos no se ha probado todavía en un encargo nuevo de principio a fin.
+
 ## Sin versión publicada — 2026-11-02
 
 ### Muestra aprobada y completo con la misma calidad alta
@@ -11,6 +61,39 @@ Las entradas describen cambios del repositorio, no versiones publicadas ni garan
 - El primer completo sigue sujeto a revisión y correcciones, con el acabado y calidad visual aprobados. La vista diagnóstica `--ritmo` no se presenta como una muestra de calidad final.
 - Validación: pruebas técnicas aisladas con los perfiles 12/slow (por defecto) y 17/medium (personalizado). En cada caso, la muestra de 1 s/12 fotogramas y el completo de 2 s/24 fotogramas conservaron 320 × 180 a 12 fps y las mismas opciones x264, verificadas en el flujo codificado; ambos archivos se decodificaron correctamente. Se validaron sintaxis, estructura y enlaces. No se produjo un video del usuario ni se evaluó un resultado artístico nuevo.
 
+
+### Kit de movimiento: curvas, cámara y transiciones (sin personaje genérico)
+
+**Problema.** La skill no aportaba medios para el movimiento ni el montaje: cada modelo dibujaba desde cero con primitivas de canvas. En la auditoría de 2026-11-02 (4,75/10) sobre dos pruebas de otros modelos (Gemini 4 Argon en `procrastinacion-short`, y `el-contador-invisible`), el resultado fueron figuras de palo, poses interpoladas sin anticipación ni rebote, y una cámara limitada a zoom o corte.
+
+**Qué se añade:**
+- **`lib.js`:** catálogo `ease` (incluye `saleBack`, `saleExpo`, `saleElastica` y `escalon`), `resorte()` (oscilador amortiguado analítico, sin estado), `mezclar()` de números, arrays y objetos, `claves()` para animación pose a pose, y `ruidoSuave()` con semilla.
+- **`kit/camara.js`:** `encuadre()` (general, conjunto, medio, medioCorto, primerPlano, detalle) calculado desde la base y el alto del sujeto, `temblor()` por impulsos con ruido suave, `camaraEnMano()`, `aplicarCamara()` y `paralaje()` por capas.
+- **`kit/transiciones.js`:** corte, whip con estela de movimiento, empuje, barrido, iris, zoom a través, flash y corte por forma, más `montaje()` para encadenar planos. Los lienzos auxiliares se crean una vez y se limpian con `reset()` en cada uso.
+- **`kit/ejemplo.html`:** 8 s verticales.
+  - Una pelota con anticipación, caída que acelera, aplastamiento en el impacto y rebotes que se asientan.
+  - Corte a detalle con temblor y paralaje.
+  - Whip a tipografía que cae con resorte, iris y contrapicado con estrellas.
+- **`render.mjs --pagina=`:** renderiza otra página del proyecto, como el ejemplo. La plantilla `index.html` carga el kit.
+- **Documentación:** `references/kit.md` (timing, gramática de planos, transiciones y una guía para diseñar y animar personajes propios). La sección "Estilo visual" del `SKILL.md` remite a ella.
+
+**Personaje genérico retirado.** Durante este cambio se probó un `kit/personaje.js` (esqueleto de vista frontal con IK, 12 poses, 10 caras y ciclos de caminar) y se eliminó antes del commit.
+- **Prueba:** Codex (GPT-6.1 Sol), con un encargo nuevo y sin referencias ("Apagón", 28 s), lo usó.
+- **Resultado:** el cuerpo actuó como una marioneta. Caminaba deslizándose de frente, un brazo subía con el resto congelado y no había desplazamiento de peso ni movimiento secundario.
+- **Contraste:** los mejores momentos del mismo video (ojos, parpadeo, mirada al cielo, cortes) no dependían del rig.
+- **Conclusión:** la plantilla de cuerpo limitaba al modelo en lugar de ayudarle. Se sustituye por principios de actuación y diseño por plano.
+
+**Validación**, en un proyecto vertical de 1080×1920 a 30 fps generado con `nuevo.py`:
+- Auditoría sin errores ni avisos.
+- `--determinismo` OK en 10 instantes del ejemplo, incluidos el impacto con corte (1,15–1,16 s), el centro del whip y el del iris.
+- `--ritmo` del ejemplo: mediana 4,37, micro 14 %, racha 1 s, 37,5 cortes/min.
+- Revisión de fotogramas.
+- La versión con personaje corrigió dos defectos durante su revisión: el whip dejaba un fotograma vacío en su centro, y una cámara cortaba la cabeza en un salto. La corrección del whip se conserva.
+
+**Límites:**
+- El kit no dibuja nada por sí mismo: la calidad de personajes y escenarios sigue dependiendo del modelo y del brief.
+- La guía de personajes no se ha probado todavía en un encargo real.
+- Las métricas no acreditan calidad artística.
 
 ### Convención de commits y documentación continua
 

@@ -56,7 +56,7 @@ Formula una intención narrativa y un cambio perceptible: qué ocurre al princip
 
 Consulta `direccion-movimiento.md` para analizar una referencia y comprobar que la pieza no se convierte en láminas. No confundas contar el mismo tema con usar el mismo lenguaje audiovisual. Presenta el storyboard por planos, con la longitud necesaria para el proyecto. Cada plano debe definir:
 
-- Identificador, escena, inicio, fin y función narrativa.
+- Identificador, escena, inicio, fin, función narrativa y papel en la curva de energía: gancho, desarrollo, re-gancho, pausa, clímax o cierre (ver la sección siguiente).
 - Sujeto, escenario, composición y foco de la mirada.
 - Estado inicial, acción principal y consecuencia.
 - Intención y poses clave del personaje; para objetos o gráficos, estados clave de forma y disposición. No fuerces personajes en una pieza que no los necesita.
@@ -72,6 +72,36 @@ Comprueba la suma de tiempos y reserva pausas para leer. Para cada escena, expli
 Antes de construir toda la animación, describe unas pocas composiciones clave y las fuentes de sus recursos. Tras autorizarse la revisión, comprueba esas imágenes y una prueba animada representativa de unos 3–6 segundos (o la duración útil de una pieza más corta). Acuerda su movimiento antes de multiplicar escenas. Las imágenes de estilo no validan actuación ni montaje. Un animatic puede ayudar en piezas complejas, pero también necesita un alcance autorizado; no es un paso obligatorio para todo encargo.
 
 La muestra reúne las dificultades reales del encargo: por ejemplo, una pose expresiva, interacción con un objeto y cambio de plano. No elijas un título sencillo si el resto dependerá de actuación o cámara compleja. Planifica recursos y capacidad de ejecución antes de ofrecer una dirección; si hace falta adaptar el alcance, explica el cambio visible y ofrécelo como decisión creativa.
+
+### Curva de energía y re-ganchos
+
+La energía de la pieza se diseña aquí, al estructurar el guion, no se arregla al final con efectos. Un gancho fuerte seguido de un centro explicativo y quieto pierde al público justo después de haberlo ganado. En la auditoría de un video de 121 s hecho con esta skill, los primeros 15 s se movían cuatro veces más que los tramos 30–45 s y 75–90 s, y los golpes de sonido bajaron un 45 % tras el gancho. Los recursos de la apertura (impact frame, líneas de velocidad, primer plano, luz) no volvían a aparecer hasta el segundo 89.
+
+Antes de escribir los planos, dibuja la curva de toda la pieza como una lista de momentos:
+
+| Momento | Cuándo | Qué cambia en el contenido | Recurso visual y sonoro |
+| --- | --- | --- | --- |
+| Gancho | 0–3 s | La acción pendiente, el contraste o la pregunta visual | Los recursos más fuertes de la pieza |
+| Re-gancho | Cada 8–12 s en piezas de menos de 60 s; cada 15–25 s en piezas más largas | Un giro, una pregunta nueva, más en juego, un cambio de lugar o de escala, una revelación | Un recurso de la apertura y un golpe o cambio sonoro |
+| Pausa | Donde la emoción la pida, con motivo y duración | Silencio, respiración antes de un giro | Va seguida de un momento fuerte |
+| Clímax de acto | Al final de cada acto | La consecuencia mayor del acto | Los recursos de la apertura, al menos igual de intensos |
+| Cierre | Final | La respuesta, la reflexión o la llamada | Puede ser más calmado, pero se sigue moviendo |
+
+Reglas para que la curva no se hunda:
+- **Cada re-gancho nace del contenido.** Abre la pregunta siguiente antes de cerrar la actual. Un flash o un zoom sin motivo no es un re-gancho.
+- **Cataloga los recursos de la apertura y repártelos.** Asigna al menos uno a cada clímax de acto. El último clímax no es más débil que el gancho.
+- **Las láminas de título duran 1,5 s como máximo y se mueven.** El gancho se paga con acción, no con una diapositiva.
+- **Las explicaciones se actúan.** El personaje u objeto hace lo que se explica. Ningún diagrama fijo dura más de 4 s y no hay fondos vacíos entre secciones.
+- **El sonido sigue la curva.** Cada re-gancho tiene su golpe o cambio sonoro, y la densidad de efectos no se desploma después del gancho.
+- **Una caída es una decisión, no un accidente.** Si un tramo debe ser calmado, decláralo como pausa con su motivo.
+
+Muestra la curva al usuario en el resumen del storyboard, con palabras sencillas: «a los 20 s descubre que el tiempo no vuelve; a los 45 s aparece el precio». Tras autorizarse la producción, guárdala en `STORYBOARD.md` y copia sus tiempos en `motion.config.json` → `curva`:
+
+```json
+"curva": { "reganches": [8, 20, 33, 47], "pausas": [[75, 79, "silencio frente al espejo antes del giro"]] }
+```
+
+`ritmo.py` mide después el movimiento por tramos frente a la apertura: falla si la energía decae fuera de las pausas declaradas, y avisa si un re-gancho planificado no se ve en el video o si pasa demasiado tiempo entre dos.
 
 ## 5. Aprobar con un alcance concreto
 

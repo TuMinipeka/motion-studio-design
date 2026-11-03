@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<title>Motion Studio · ejemplo del kit</title>
+<style>html, body { margin: 0; background: #0E1116; } canvas { display: block; }</style>
+<canvas id="c"></canvas>
+<script src="../lib.js"></script>
+<script src="camara.js"></script>
+<script src="transiciones.js"></script>
+<script>
+// Ejemplo del kit (pensado para 1080x1920, unos 8 s). Muestra el patrón, no un estilo que copiar:
+//   · cada plano es una función plano(ctx, t) y montaje() los enlaza con transiciones;
+//   · el movimiento sigue los principios de animación con claves() y resorte(): anticipación, caída que acelera,
+//     aplastamiento con volumen constante en el impacto, estiramiento con la velocidad, rebote que se asienta;
+//   · la cámara se calcula desde el sujeto con encuadre(), corta en la acción y tiembla en el golpe;
+//   · el fondo tiene capas con paralaje.
+// No incluye un personaje: diséñalo para cada pieza (ver references/kit.md, «Personajes»).
+// Renderízalo con:  node render.mjs --pagina=kit/ejemplo.html --frames=1.2,3.6,6.5
+(async () => {
+  const cfg = await (await fetch('/motion.config.json')).json();
+  const W = cfg.video.ancho, H = cfg.video.alto;
+  const cv = document.getElementById('c'); cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  const f = new FontFace('Titulo', 'url(/node_modules/@fontsource/archivo-black/files/archivo-black-latin-400-normal.woff2)');
+  await f.load(); document.fonts.add(f); await document.fonts.ready;
+  const { texto } = crearTexto(ctx);
+  const tr = crearTransiciones(W, H);
+  const ACENTO = '#FF5A36', SUELO = 1500, R = 120;
+
+  // ── la pelota: posición y deformación en función de t ───────────────────────────────────────────
+  // Botes con alturas decrecientes; cada caída es una parábola (acelera), el impacto aplasta y la subida estira.
+  const botes = [[0.55, 1.15, 900], [1.15, 1.6, 420], [1.6, 1.92, 180], [1.92, 2.12, 60]];   // [desde, hasta, altura]
+  function pelota(t) {
+    if (t < 0.25) return { y: SUELO - R - 900 + 30 * ease.seno(prog(t, 0, 0.25)), sx: 1, sy: 1 };   // anticipación: sube un poco
+    if (t < 0.55) { const k = prog(t, 0.25, 0.55); return { y: SUELO - R - 870 + 870 * k * k, sx: 1 - 0.18 * k, sy: 1 + 0.25 * k }; }
+    for (const [a, b, h] of botes) if (t < b) {
+      const k = prog(t, a, b), alto = 4 * h * k * (1 - k), v = Math.abs(1 - 2 * k);        // v: rapidez relativa
+      const imp = Math.exp(-(t - a) * 30) * (h / 900);                                       // aplastamiento al tocar suelo
+      return { y: SUELO - R - alto, sx: 1 + 0.45 * imp - 0.1 * v * (h / 900), sy: 1 - 0.45 * imp + 0.15 * v * (h / 900) };
+    }
+    const asienta = 1 - resorte(t - 2.12, 3, 0.3);                                            // pequeño temblor final
+    return { y: SUELO - R, sx: 1 + 0.04 * asienta, sy: 1 - 0.04 * asienta };
+  }
+  function dibujarPelota(c, x, p) {
+    const sombra = clamp(1 - (SUELO - R - p.y) / 900, 0.15, 1);
+    c.fillStyle = `rgba(0,0,0,${0.5 * sombra})`; c.beginPath(); c.ellipse(x, SUELO + 6, R * 1.1 * sombra * p.sx, 18 * sombra, 0, 0, Math.PI * 2); c.fill();
+    c.save(); c.translate(x, p.y + R); c.scale(p.sx, p.sy); c.translate(0, -R);         // se deforma desde el punto de apoyo
+    const g = c.createRadialGradient(-R * 0.35, -R * 0.4, R * 0.1, 0, 0, R);
+    g.addColorStop(0, '#FF9A76'); g.addColorStop(1, ACENTO);
+    c.fillStyle = g; c.beginPath(); c.arc(0, 0, R, 0, Math.PI * 2); c.fill();
+    c.restore();
+  }
+  function fondo(c, cam, cam0) {
+    c.fillStyle = '#141A23'; c.fillRect(0, 0, W, H);
+    paralaje(c, cam, cam0, 0.35, W, H, x => {
+      x.fillStyle = '#1B2430'; x.fillRect(-W, 0, W * 3, SUELO);
+      x.fillStyle = 'rgba(255,214,150,0.08)'; x.beginPath(); x.moveTo(150, 300); x.lineTo(470, 300); x.lineTo(W + 200, SUELO); x.lineTo(380, SUELO); x.fill();
+      x.fillStyle = '#F2D29B'; x.fillRect(150, 300, 320, 420);
+    });
+    aplicarCamara(c, cam, W, H);
+    c.fillStyle = '#0D1218'; c.fillRect(-W, SUELO, W * 3, H);
+    c.restore();
+  }
+
+  // ── plano 1 (0–2.8 s): la pelota cae y rebota; la cámara corta a detalle en el primer impacto ───────
+  const sujeto = { x: W / 2, y: SUELO, alto: 1100 }, cam0 = encuadre('conjunto', sujeto, H);
+  function plano1(c, t) {
+    const det = encuadre('detalle', { x: W / 2, y: SUELO, alto: 1100 }, H, [W / 2, SUELO - 120]);
+    const cam = claves(t, [[0, cam0], [1.15, cam0], [1.151, det, 'escalon'], [2.8, mezclar(det, cam0, 0.6), 'suave']]);
+    fondo(c, cam, cam0);
+    aplicarCamara(c, cam, W, H, temblor(t, [[1.15, 26, 0.35], [1.6, 10, 0.25]], 2));
+    dibujarPelota(c, W / 2, pelota(t));
+    c.restore();
+  }
+
+  // ── plano 2 (2.8–5.4 s): tipografía que cae con peso y se asienta con rebote, en cada pulso ───────────
+  const palabras = [['CAE', 3.0], ['REBOTA', 3.6], ['VUELVE', 4.2]];
+  function plano2(c, t) {
+    c.fillStyle = ACENTO; c.fillRect(0, 0, W, H);
+    const deriva = camaraEnMano(t, 6, 9);
+    c.save(); c.translate(deriva.dx, deriva.dy);
+    palabras.forEach(([p, t0], i) => {
+      if (t < t0 - 0.12) return;
+      const y = 620 + i * 260, caida = claves(t, [[t0 - 0.12, -500], [t0, 0, 'entra']]);
+      const r = resorte(t - t0, 2.4, 0.35), sy = t < t0 ? 1.15 : lerp(0.7, 1, r), sx = 1 / sy;   // aplasta al aterrizar
+      c.save(); c.translate(W / 2, y + caida); c.scale(sx, sy);
+      texto(p, '190px Titulo', '#141A23', 0, 0); c.restore();
+    });
+    c.restore();
+  }
+
+  // ── plano 3 (5.4–8 s): contrapicado; la pelota se convierte en un sol que sube con estrellas ──────────
+  function plano3(c, t) {
+    c.fillStyle = '#0B1020'; c.fillRect(0, 0, W, H);
+    for (let i = 0; i < 160; i++) {                                     // estrellas con brillo vivo y sembrado
+      const a = 0.4 + 0.6 * (0.5 + 0.5 * ruidoSuave(i, t, 1.5)) * prog(t, 5.4 + srand(4, i) * 1.2, 6.4 + srand(4, i) * 1.2);
+      c.fillStyle = `rgba(255,255,255,${a})`; c.fillRect(srand(1, i) * W, srand(2, i) * H * 0.7, 3, 3);
+    }
+    const sube = ease.saleExpo(prog(t, 5.6, 7.4));
+    c.save(); c.translate(W / 2, H * 0.62); c.rotate(-0.06 * (1 - sube));          // la cámara se endereza al subir
+    c.fillStyle = ACENTO; c.beginPath(); c.arc(0, lerp(500, -260, sube), lerp(R, 300, sube), 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#05070D'; c.fillRect(-W, 380, W * 2, H);                        // horizonte en primer término
+    c.restore();
+  }
+
+  function render(t) {
+    ctx.reset();
+    tr.montaje(ctx, t, [
+      { fin: 2.8, plano: plano1, salida: { tipo: 'whip', dur: 0.3, dir: 1 } },
+      { fin: 5.4, plano: plano2, salida: { tipo: 'iris', dur: 0.6, centro: [W / 2, 1140] } },
+      { fin: 99, plano: plano3 },
+    ]);
+  }
+
+  window.seek = t => render(t);
+  window.seek(0);
+  window.ready = true;
+})().catch(e => { window.loadError = String(e && e.stack || e); });
+</script>
