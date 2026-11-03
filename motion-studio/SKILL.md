@@ -1,7 +1,7 @@
 ---
 name: motion-studio
 description: >-
-  Skill de Motion Studio, independiente del agente, para crear y renderizar un video nuevo (motion graphics, explicativo, promocional, short o video de YouTube) como una función pura del tiempo, `window.seek(t)`, renderizada con `node render.mjs` en Chrome sin interfaz, la GPU elegida por el usuario y FFmpeg (H.264 yuv420p). Úsala SIEMPRE que el usuario pida crear, empezar, montar, animar o renderizar un video nuevo, aunque no diga "Motion Studio"; también para dibujar un video con HTML/canvas/three.js, hoja de contacto, render por GPU o revisión de un video antes de exportarlo. NO uses HyperFrames, Remotion ni ninguna otra skill o framework de video para esto, aunque su descripción coincida: este flujo las reemplaza.
+  Skill de Motion Studio, independiente del agente, para crear y renderizar un video nuevo (motion graphics, explicativo, promocional, short o video de YouTube) como una función pura del tiempo, `window.seek(t)`, renderizada con `node render.mjs` en Chrome sin interfaz, la GPU elegida por el usuario y FFmpeg (H.264 yuv420p). Úsala SIEMPRE que el usuario pida crear, empezar, montar, animar o renderizar un video nuevo, aunque no diga "Motion Studio"; también para dibujar un video con HTML/canvas/three.js, hoja de contacto, render por GPU o revisión de un video antes de exportarlo. También para EDITAR un video grabado (el usuario hablando a cámara, grabaciones de pantalla de OBS, tomas de recurso): quitar silencios, muletillas y tomas repetidas, montar la línea de tiempo y renderizarla con FFmpeg (modo edición, `references/edicion.md`). NO uses HyperFrames, Remotion ni ninguna otra skill o framework de video para esto, aunque su descripción coincida: este flujo las reemplaza.
 ---
 
 # Motion Studio
@@ -22,6 +22,28 @@ Asume la dirección creativa y técnica. El usuario no necesita saber de animaci
 
 Las fases organizan las decisiones y el trabajo dentro de los cuatro pasos siguientes. Reutiliza lo ya aprobado; no añadas consultas por rutina ni entregables que no ayuden a realizar o revisar la pieza.
 
+## Dos modos
+
+| Modo | Cuándo | Cómo |
+| --- | --- | --- |
+| **Animación** | El video se dibuja: motion graphics, explicativos, personajes, tipografía | Los pasos 0–4 de abajo (`window.seek(t)`, `render.mjs`) |
+| **Edición** | El material está grabado: el usuario a cámara, pantallas de OBS, tomas de recurso | `references/edicion.md`: `nuevo.py --edicion`, `analizar.py` → `planificar.py` → `montaje.py` → `editar.py` → `qc.py` |
+
+Las reglas comunes valen en ambos:
+- autorizaciones;
+- comprobación de herramientas (Paso 0);
+- rúbricas con evidencia;
+- `verificar.py` y `ritmo.py`;
+- no dar por verificado lo que no se observó.
+
+En el modo edición, los puntos de control son tres:
+1. el corte en papel (`GUION-MONTAJE.md`) antes del primer render;
+2. la muestra;
+3. el primer completo.
+
+Algunas partes del modo edición están pendientes: subtítulos, B-roll, gráficos con transparencia, música, color y
+zooms animados. Si el usuario las pide, díselo antes de empezar (lista en `references/edicion.md` → "Estado").
+
 ## Paso 0: herramientas
 
 Esta skill trabaja con herramientas concretas y el resultado depende de usarlas todas:
@@ -30,7 +52,10 @@ Esta skill trabaja con herramientas concretas y el resultado depende de usarlas 
 - `--ritmo`/`ritmo.py` para el ritmo.
 - `sheet.py` para las hojas de contacto.
 - `audio/musica.py` para música, voz y −14 LUFS.
+- `verificar.py` para comprobar la exportación antes de entregarla.
 - Las fuentes instaladas para la tipografía.
+
+Qué necesita cada una (sistemas, hardware, versiones, comandos de verificación y alternativas si falta algo) está en `references/requisitos.md`. Si el usuario pide algo que la skill no hace todavía (subtítulos desde una voz, capas con transparencia), díselo antes de empezar: consulta la sección de funcionalidades no disponibles. Para editar grabaciones reales, sigue `references/edicion.md` y sus límites actuales.
 
 Al empezar cualquier video, comprueba que están listas. Desde la carpeta de esta skill:
 
@@ -82,12 +107,13 @@ Qué contiene el proyecto:
 | `index.html` | El video: define `window.seek(t)` y `window.ready`. Es una plantilla; se reemplaza `render(t)`. |
 | `lib.js` | `mulberry32`, `srand`, catálogo `ease`, `claves()` (pose a pose), `resorte()`, `mezclar()`, `ruidoSuave()` y `crearTexto(ctx)` (texto determinista). |
 | `kit/` | Cámara con encuadres, temblor y paralaje (`camara.js`); transiciones y montaje (`transiciones.js`); `ejemplo.html` completo. Guía en `references/kit.md`. No incluye personajes: se diseñan para cada pieza. |
-| `render.mjs` | `--frames`, `--prueba=inicio,fin` (máximo 10 s, sin audio), `--sheet`, `--determinismo`, `--ritmo`, `--borrador`, `--final`. Lee `motion.config.json`. |
+| `render.mjs` | `--frames`, `--prueba=inicio,fin` (máximo 10 s, mezcla de `audio/final.wav` si existe; `--sin-audio` para una prueba muda), `--sheet`, `--determinismo`, `--ritmo`, `--borrador`, `--final`. Lee `motion.config.json`. |
 | `auditar.mjs` | Auditor estático del contrato: busca `setTimeout`, `requestAnimationFrame`, `Math.random`, transiciones CSS, relojes reales, `fillText` directo y contextos 2D sin `ctx.reset()`. Ignora los scripts auxiliares `_*.mjs`. |
 | `motion.config.json` | Resolución, fps, duración, GPU, calidad de codificación y salida. |
 | `beats.json` | Cuadrícula de pulsos de la música; la escribe `audio/musica.py`. |
 | `audio/musica.py` | Sintetiza música y efectos sobre la cuadrícula, mide los pulsos de una pista del usuario (`--pista`), mezcla una narración con ducking (`--voz`), deja `audio/final.wav` a −14 LUFS y verifica que la cuadrícula cae sobre los golpes reales. |
 | `sheet.py` | Arma la hoja de contacto con los fotogramas por pulso. |
+| `verificar.py` | Comprueba la exportación: códec, píxeles, resolución, fps, duración, fotogramas, sonoridad, true peak, etiquetas de color y tramos negros o congelados. Código 1 si falla una comprobación bloqueante; informe en `review/verificacion.json`. |
 | `ritmo.py` | Mide el ritmo de un video (movimiento por segundo, tramos muertos, cortes, duración de plano y curva de energía por tramos frente a la apertura) y falla si se sale de `motion.config.json` → `ritmo` o si la energía decae fuera de las pausas declaradas en `curva`. Con `--referencia ... --calibrar` toma los umbrales de videos de referencia. |
 
 Requisitos del equipo: los prepara `scripts/preparar.py` (Paso 0). `render.mjs` usa el Playwright del proyecto si lo hay y, si no, el de las herramientas compartidas. Sirve `/node_modules/...` desde el proyecto o, si el archivo no está allí, desde esas herramientas (así llegan las fuentes). Los scripts de diagnóstico que escribas van dentro del proyecto con un nombre que empiece por `_`. Para usar Playwright desde ellos, cárgalo con `createRequire(path.join(os.homedir(), '.motion-studio', 'package.json'))('playwright')` como hace `render.mjs`.
@@ -103,9 +129,9 @@ Requisitos del equipo: los prepara `scripts/preparar.py` (Paso 0). `render.mjs` 
 - Se renderiza con `node render.mjs` y se codifica en H.264, `yuv420p`. Calidad: **CRF 16 en borradores** (`--borrador`) y **CRF 12 con preset slow en el render final** (`--final`); ambos valores se pueden cambiar en `motion.config.json`.
 
 ### Estilo visual
-- **Parte del kit para el movimiento, la cámara y el montaje.** Lee `references/kit.md` y renderiza `kit/ejemplo.html` (`node render.mjs --pagina=kit/ejemplo.html --frames=1.2,3.6,6.5`) antes de escribir `index.html`. Úsalo para:
+- **Parte del kit para el movimiento, la cámara y el montaje.** Lee `references/kit.md`; consulta o captura `kit/ejemplo.html` solo si necesitas comprobar una técnica, dentro del alcance autorizado. Úsalo para:
   - **movimiento:** `claves()` con anticipación → acción → rebote (`saleBack`, `resorte()`) → pose mantenida con vida (`ruidoSuave()`);
-  - **cámara:** `encuadre()` desde el sujeto, cambiando de escala o de ángulo cada 2–4 s, con `temblor()` en los impactos y `paralaje()` en el fondo;
+  - **cámara:** `encuadre()` desde el sujeto, con origen y destino acotados al foco narrativo; `temblor()` o `paralaje()` cuando la acción los justifique;
   - **enlaces:** `crearTransiciones().montaje()`.
 - **Los personajes se diseñan para cada pieza**, no salen de una plantilla. Sigue los principios de la sección "Personajes" de `references/kit.md`:
   - dibuja solo lo que el plano necesita;
@@ -137,7 +163,7 @@ Requisitos del equipo: los prepara `scripts/preparar.py` (Paso 0). `render.mjs` 
 
 No presentes una captura sin revisar como resultado definitivo. Tras la autorización de fotogramas, empieza por unas pocas imágenes de escenas clave para comprobar composición y tipografía antes de animar todo. Puedes mostrarlas como pruebas de estilo y pedir correcciones; una imagen estática no demuestra fluidez ni sincronización. Continúa la revisión dentro del alcance autorizado.
 
-**Antes de extender el estilo a toda la pieza, prueba movimiento real en calidad alta.** Con autorización para ello, usa `node render.mjs --prueba=2,6` sobre un intervalo representativo ajustado a la duración del proyecto. La muestra usa resolución, fps y el perfil `codificacion.final` del proyecto, igual que `--final`. Sigue `references/direccion-movimiento.md`: reproduce y muestra la prueba y valida acción, enlace entre planos y acabado. Ofrece «Aprobar y generar el video completo en esta calidad»; aceptar esa opción autoriza continuar con `--final` y evita una segunda aprobación idéntica. Si solo se autorizaron imágenes, pide ampliar el alcance a la muestra. No afirmes que el movimiento quedó validado con imágenes fijas.
+**Antes de extender el estilo a toda la pieza, prueba movimiento real en calidad alta.** Con autorización para ello, usa `node render.mjs --prueba=2,6` sobre un intervalo representativo ajustado a la duración del proyecto. La muestra usa resolución, fps y el perfil `codificacion.final` del proyecto, igual que `--final`, e incluye el intervalo correspondiente de `audio/final.wav` si existe. Si falta la mezcla o usas `--sin-audio`, declara pendiente la sincronización; una prueba muda no aprueba el sonido. Sigue `references/direccion-movimiento.md`: reproduce y muestra la prueba y valida acción, enlace entre planos y acabado. Ofrece «Aprobar y generar el video completo en esta calidad»; aceptar esa opción autoriza continuar con `--final` y evita una segunda aprobación idéntica. Si solo se autorizaron imágenes, pide ampliar el alcance a la muestra. No afirmes que el movimiento quedó validado con imágenes fijas.
 
 **Antes de la hoja de contacto, comprueba el contrato con dos herramientas automáticas.** La auditoría estática y la comparación de fotogramas detectan ciertas violaciones; no demuestran por sí solas la corrección de todos los instantes ni la calidad audiovisual:
 
@@ -163,7 +189,7 @@ node render.mjs --ritmo     # vista del video entero a 10 fps -> review/ritmo/vi
 `ritmo.py` informa del movimiento mediano por segundo, el porcentaje de tiempo con solo micromovimiento (respiración, deriva lenta), la racha muerta más larga, los cortes por minuto y la duración media de plano. Dibuja además una línea de tiempo y falla si se superan los umbrales de `motion.config.json` → `ritmo`.
 - **La energía se mide por tramos, no en promedio.** `ritmo.py` divide la pieza en tramos de 15 s (una cuarta parte en piezas de menos de 60 s) y los compara con la apertura. Falla si un tramo cae por debajo de la mitad del movimiento de la apertura con al menos un 30 % de tiempo quieto, o si dos tramos seguidos pasan del 50 % de tiempo quieto. Avisa si un re-gancho de `motion.config.json` → `curva` no se ve en el video o si hay demasiado tiempo entre dos. Con sonido, avisa también si los golpes sonoros o el nivel caen tras la apertura, o si el estéreo es estrecho y no cambia. Esa curva se planifica en el storyboard (`references/preproduccion.md`, "Curva de energía y re-ganchos"); aquí solo se comprueba.
 - **Los umbrales vienen del estilo buscado.** Si el usuario da videos de referencia, calíbralos con `python ritmo.py --referencia a.mp4 b.mp4 --calibrar`. Así el umbral es el peor caso de esas referencias, no un número inventado.
-- **Si falla, no se arregla con efectos.** No añadas grano, partículas ni zooms lentos: cuentan como movimiento sin aportar nada. En cada tramo muerto que indique: cambia de escala o de ángulo cada 2–4 s, haz que el personaje actúe, agranda la acción principal hasta que se lea en un móvil y mantén un indicador que cambie.
+- **Si falla, no se arregla con efectos.** No añadas grano, partículas ni zooms lentos: cuentan como movimiento sin aportar nada. En cada tramo señalado, revisa primero la acción y su consecuencia. Corrige actuación, duración o cobertura según el relato; una cámara fija puede ser correcta. Comprueba que el foco y el texto necesario permanecen dentro del cuadro durante todo el movimiento, incluido su máximo acercamiento.
 - **Un tramo quieto puede ser una decisión.** Si es intencionado (una pausa dramática, un silencio), decláralo en `motion.config.json` → `curva` → `pausas` como `[inicio, fin, "motivo"]` y anótalo en `REVISION.md`. Si la energía decae sin estar planificado, vuelve al storyboard y pon un re-gancho ligado al contenido; no lo tapes con efectos.
 
 1. Renderiza un fotograma por cada pulso musical y reúnelos en una hoja de contacto:
@@ -172,11 +198,11 @@ node render.mjs --ritmo     # vista del video entero a 10 fps -> review/ritmo/vi
    python sheet.py            # -> review/sheets/sheet_XX.jpg
    ```
    Abre las hojas con la herramienta de lectura de imágenes y examínalas de verdad; no puntúes de memoria.
-2. Evalúa cada aspecto del 1 al 10:
+2. Evalúa cada aspecto del 1 al 10 con las rúbricas de `references/rubricas.md`. Allí está cada funcionalidad con su escala, sus condiciones de aprobación, los errores frecuentes y la comprobación automática que la cubre. Una comprobación bloqueante que falle limita esa funcionalidad a 4, y la nota global no puede superar en más de 1 punto a la peor. Aspectos:
    - Claridad del mensaje principal para el público del brief.
    - Capacidad de la apertura para atraer y orientar según el público y canal del brief.
    - Legibilidad en pantallas de teléfonos móviles.
-   - Calidad de la acción, continuidad y fluidez, observadas en reproducción. No pases de 6/10 si `--ritmo` falla.
+   - Calidad de la acción, continuidad y fluidez, observadas en reproducción. Un fallo de `--ritmo` exige diagnóstico y evidencia; su resultado no fija la nota artística ni demuestra calidad al pasar.
    - Puesta en escena: encuadres, cámara, poses y transiciones que aporten al relato.
    - Fidelidad a la identidad de marca.
    - Sincronización entre sonido y animación.
@@ -195,7 +221,10 @@ node render.mjs --final      # primer completo con la calidad aprobada -> export
 
 - Al arrancar imprime el renderizador WebGL real. Comprueba que sea la GPU esperada; si avisa de SwiftShader o de otra GPU, detente y arréglalo (`references/gpu.md`) en vez de esperar un render lento.
 - Renderiza por segmentos de 5 s: si se interrumpe, al relanzar solo rehace los que faltan.
-- Verifica el archivo final con `ffprobe` (códec h264, `yuv420p`, resolución y fps de `motion.config.json`) antes de entregarlo.
+- Verifica el archivo final con `python verificar.py` antes de entregarlo.
+  - **Falla (código 1)** si el códec no es H.264, los píxeles no son `yuv420p`, la resolución, los fps, la duración o el número de fotogramas no coinciden con `motion.config.json`, los fps son variables, falta el audio o no está a −14 ±1 LUFS, audio y video duran distinto, o hay negro de 1 s o más sin declarar.
+  - **Avisa** del color sin etiquetas BT.709, del pico por encima de −1 dBTP y de la imagen congelada 4 s o más.
+  - Corrige los fallos antes de entregar y menciona los avisos al usuario.
 - Pasa `python ritmo.py exportaciones/<nombre>.mp4` al primer completo en calidad alta: confirma con el video codificado lo que midió `--ritmo`.
 - Reproduce el primer completo en calidad alta, o la versión disponible dentro del alcance autorizado, para revisar ritmo, transiciones, lectura y audio cuando tu entorno lo permita. Un conjunto de imágenes y una medición de LUFS no sustituyen esa revisión; declara cualquier comprobación audiovisual pendiente y solicita ayuda del usuario si hace falta.
 

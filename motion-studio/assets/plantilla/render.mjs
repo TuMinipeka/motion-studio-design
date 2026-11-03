@@ -1,7 +1,7 @@
 // Motion Studio · render determinista de un video que es una función pura de t.
 //
 //   node render.mjs --frames=0,1.5,3      fotogramas sueltos        -> review/frames/
-//   node render.mjs --prueba=2,6          muestra con calidad final, sin audio (max. 10 s) -> review/pruebas/
+//   node render.mjs --prueba=2,6          muestra con calidad final y mezcla si existe (max. 10 s) -> review/pruebas/
 //   node render.mjs --sheet               un fotograma por pulso    -> review/beats/ (luego: python sheet.py)
 //   node render.mjs --determinismo        comprueba que un fotograma depende solo de t (ver abajo)  [--t=0,1.5,3]
 //   node render.mjs --ritmo               vista a 10 fps del video entero -> review/ritmo/vista.mp4 y `python ritmo.py`
@@ -10,6 +10,7 @@
 //
 // Opciones: --workers=N  --gpu=alto-rendimiento|bajo-consumo|auto|cpu  --swiftshader (= --gpu=cpu)
 //           --pagina=kit/ejemplo.html   renderiza otra página del proyecto en lugar de index.html
+//           --sin-audio               prueba visual explícitamente muda
 // La configuración vive en motion.config.json (resolución, fps, GPU, calidad, salida).
 import http from 'node:http';
 import crypto from 'node:crypto';
@@ -163,10 +164,18 @@ try {
       const [desde, hasta] = rangoPrueba;
       const out = path.join(root, 'review', 'pruebas'); fs.mkdirSync(out, { recursive: true });
       const salida = path.join(out, `movimiento-${desde}-${hasta}.mp4`), parcial = salida + '.part.mp4';
+      const audio = path.join(root, 'audio', 'final.wav');
+      const hayAudio = !arg('sin-audio') && fs.existsSync(audio);
+      const segundos = (hasta - desde) / FPS;
+      if (!hayAudio) console.warn('AVISO: prueba visual sin audio; la sincronización y la mezcla quedan pendientes.');
       const page = await abrirPagina();
       const ff = spawn('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'image2pipe', '-c:v', 'png',
-        '-framerate', String(FPS), '-i', '-', '-an', '-c:v', 'libx264', '-preset', cfg.codificacion.final.preset, '-crf', String(cfg.codificacion.final.crf),
-        '-pix_fmt', 'yuv420p', '-movflags', '+faststart', parcial], { stdio: ['pipe', 'inherit', 'inherit'] });
+        '-framerate', String(FPS), '-i', '-',
+        ...(hayAudio ? ['-i', audio, '-filter_complex',
+          `[1:a]atrim=start=${desde / FPS}:duration=${segundos},asetpts=PTS-STARTPTS,apad=whole_dur=${segundos}[a]`,
+          '-map', '0:v:0', '-map', '[a]', '-c:a', 'aac', '-b:a', '320k'] : ['-an']),
+        '-c:v', 'libx264', '-preset', cfg.codificacion.final.preset, '-crf', String(cfg.codificacion.final.crf),
+        '-pix_fmt', 'yuv420p', '-t', String(segundos), '-movflags', '+faststart', parcial], { stdio: ['pipe', 'inherit', 'inherit'] });
       const terminado = new Promise((resolve, reject) => {
         ff.once('error', reject);
         ff.once('close', code => code === 0 ? resolve() : reject(new Error(`FFmpeg fallo en la prueba (${code})`)));
@@ -180,7 +189,7 @@ try {
         }
         ff.stdin.end(); await terminado;
         fs.renameSync(parcial, salida);
-        console.log(`OK prueba sin audio: ${salida} · ${(hasta - desde) / FPS} s · ${hasta - desde} fotogramas · CRF ${cfg.codificacion.final.crf} / ${cfg.codificacion.final.preset}`);
+        console.log(`OK prueba ${hayAudio ? 'con mezcla' : 'sin audio'}: ${salida} · ${segundos} s · ${hasta - desde} fotogramas · CRF ${cfg.codificacion.final.crf} / ${cfg.codificacion.final.preset}`);
       } finally {
         if (ff.exitCode === null) { ff.stdin.destroy(); ff.kill(); }
         await terminado.catch(() => {});

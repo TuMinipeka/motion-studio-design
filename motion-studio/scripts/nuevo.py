@@ -2,9 +2,11 @@
 """Crea la carpeta de un video nuevo desde la plantilla de Motion Studio y configura la GPU.
 
     python nuevo.py <carpeta> [--nombre NOMBRE] [--gpu "texto del nombre"] [--duracion S] [--fps N] [--vertical]
-                    [--sin-preparar] [--listar-gpus]
+                    [--sin-preparar] [--listar-gpus] [--edicion]
 
 - Copia assets/plantilla/ a <carpeta> (no pisa nada: si <carpeta> ya existe y no esta vacia, se detiene).
+- Con --edicion crea un proyecto de edición de video real (assets/edicion/ + verificar.py y ritmo.py) con
+  fuentes/camara, fuentes/pantalla, fuentes/broll y fuentes/audio, y guarda el perfil del equipo (preparar.py --perfil).
 - Detecta las GPU del equipo (Windows) y escribe la elegida en <carpeta>/motion.config.json.
   Si hay varias y no usas --gpu, elige la dedicada (NVIDIA > Radeon RX/Arc) y te lo dice: confirmalo con el usuario.
 - Escribe la duracion, los fps y la orientacion del brief (--vertical = 1080x1920) en motion.config.json.
@@ -20,6 +22,9 @@ import sys
 from pathlib import Path
 
 PLANTILLA = Path(__file__).resolve().parent.parent / "assets" / "plantilla"
+EDICION = Path(__file__).resolve().parent.parent / "assets" / "edicion"
+# herramientas de la plantilla de animación que el modo edición reutiliza tal cual
+COMPARTIDAS = ["verificar.py", "ritmo.py"]
 # (patron del nombre, texto para `gpu.coincidir`, prioridad: menor = mas probable que sea la dedicada)
 MARCAS = [(r"NVIDIA|GeForce|RTX|GTX", "NVIDIA", 0), (r"Radeon RX|Radeon Pro|\bRX \d", "Radeon", 1), (r"Intel.*Arc|\bArc\b", "Arc", 2),
           (r"AMD|Radeon", "AMD|Radeon", 3), (r"Intel", "Intel", 4)]
@@ -68,6 +73,34 @@ def preparar(instalar):
     return subprocess.run(cmd).returncode == 0
 
 
+def nuevo_edicion(destino, a):
+    """Proyecto de edición de video real: las herramientas de assets/edicion, las de revisión compartidas con la
+    animación y las carpetas de fuentes. La salida (resolución, fps) la propone analizar.py desde las grabaciones,
+    salvo que se fije aquí con --fps o --vertical."""
+    shutil.copytree(EDICION, destino, dirs_exist_ok=True, ignore=shutil.ignore_patterns("__pycache__"))
+    for f in COMPARTIDAS:
+        shutil.copy2(PLANTILLA / f, destino / f)
+    for sub in ("camara", "pantalla", "broll", "audio"):
+        (destino / "fuentes" / sub).mkdir(parents=True, exist_ok=True)
+    salida = {"nombre": a.nombre or re.sub(r"[^A-Za-z0-9_-]+", "-", destino.name).strip("-") or "video"}
+    if a.fps:
+        salida["fps"] = a.fps
+    if a.vertical:
+        salida["ancho"], salida["alto"] = 1080, 1920
+    (destino / "montaje.json").write_text(json.dumps({"version": 1, "salida": salida, "fuentes": {}, "clips": [],
+                                                      "curva": {"reganches": [], "pausas": []}}, ensure_ascii=False, indent=1) + "\n",
+                                          encoding="utf-8")
+    print(f"Proyecto de edición creado: {destino}")
+    print("Copia las grabaciones en fuentes/camara (tú a cámara), fuentes/pantalla (OBS), fuentes/broll y, si grabaste")
+    print("la voz aparte, fuentes/audio. Después: python analizar.py")
+    print()
+    sys.stdout.flush()
+    r = subprocess.run([sys.executable, str(Path(__file__).resolve().parent / "preparar.py"), "--perfil"])
+    if r.returncode:
+        print("AVISO: falta alguna herramienta (ver arriba). Sin faster-whisper el proyecto trabaja en nivel núcleo.")
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("carpeta", nargs="?")
@@ -78,6 +111,7 @@ def main():
     ap.add_argument("--vertical", action="store_true", help="1080x1920 (shorts, reels) en lugar de 1920x1080")
     ap.add_argument("--sin-preparar", action="store_true", help="no instalar herramientas que falten; solo comprobarlas")
     ap.add_argument("--listar-gpus", action="store_true")
+    ap.add_argument("--edicion", action="store_true", help="proyecto del modo edición de video real (references/edicion.md)")
     a = ap.parse_args()
 
     gpus = listar_gpus()
@@ -89,6 +123,8 @@ def main():
     if destino.exists() and any(destino.iterdir()):
         print(f"ERROR: {destino} ya existe y no esta vacia; no se sobrescribe nada.", file=sys.stderr)
         return 1
+    if a.edicion:
+        return nuevo_edicion(destino, a)
     shutil.copytree(PLANTILLA, destino, dirs_exist_ok=True)
 
     nombre_gpu, coincidir, modo = elegir(gpus, a.gpu)

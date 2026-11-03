@@ -62,6 +62,6 @@ No recomiendes aceptar una prueba que sabes que falla. Cambia las alternativas s
 
 Antes del aviso de la muestra, presenta versión, duración, orientación, audio, destino y pendientes. Registra resolución, fps y perfil `codificacion.final` en el brief; no hagas elegir parámetros técnicos que ya están resueltos.
 
-Aceptar «Aprobar y generar completo» autoriza el primer video completo en calidad alta. Continúa dentro de ese alcance y no pidas otra vez la misma aprobación. Conserva actuación, cámara, transiciones, recursos, resolución, fps y codificación aprobados. La muestra y el completo comparten ese perfil; la muestra sigue siendo sin audio y no acredita una mezcla todavía no escuchada.
+Aceptar «Aprobar y generar completo» autoriza el primer video completo en calidad alta. Continúa dentro de ese alcance y no pidas otra vez la misma aprobación. Conserva actuación, cámara, transiciones, recursos, resolución, fps y codificación aprobados. La muestra y el completo comparten ese perfil; la muestra incluye la mezcla si existe; no acredita una mezcla todavía no escuchada. Si es muda, indica esa limitación antes del aviso.
 
 El primer completo puede requerir correcciones; se revisa manteniendo calidad alta. Solo ofrece un borrador reducido si el usuario lo pide o elige expresamente ahorrar recursos. Si la respuesta solo dice que le gusta y el aviso no incluía autorización de exportación, concreta esa autorización. Un cambio sustancial del entregable o de la calidad requiere confirmar el nuevo alcance.

@@ -175,7 +175,7 @@ Desde la carpeta del video:
 ```bash
 node auditar.mjs
 node render.mjs --determinismo
-node render.mjs --prueba=2,6  # hasta 10 s; misma calidad final, sin audio
+node render.mjs --prueba=2,6  # hasta 10 s; calidad final y audio/final.wav si existe
 node render.mjs --sheet
 python sheet.py
 ```
@@ -187,6 +187,10 @@ node render.mjs --final  # completo con la misma calidad que la muestra aprobada
 # Solo si el usuario elige una versión reducida:
 # node render.mjs --borrador
 ```
+
+La muestra incorpora la mezcla disponible, alineada al intervalo capturado; usa `--sin-audio` para una prueba visual. No normaliza por separado el fragmento. La cámara se revisa por su intención y por mantener el foco legible; pasar las métricas de ritmo no certifica calidad artística.
+
+Consulta la [revisión de un episodio real](docs/analysis/2026-11-03-ojala-review.md) para ver los defectos encontrados, la comparación controlada y los límites de estas comprobaciones.
 
 El render trabaja en segmentos de 5 segundos y permite reanudar los que faltan tras una interrupción. Comprueba el MP4 final con FFprobe antes de entregarlo.
 
@@ -232,7 +236,7 @@ python scripts/preparar.py --sistema    # también Node.js y FFmpeg (winget/brew
 Las herramientas compartidas viven en `~/.motion-studio`; puedes cambiar la ruta con la variable `MOTION_STUDIO_HOME`. El resultado de la última verificación, incluido el renderizador WebGL detectado, queda en `~/.motion-studio/estado.json`.
 
 > [!NOTE]
-> El render solo se ha probado en **Windows 11, Direct3D 11 y NVIDIA RTX 3050**. Hay instalador para macOS/Linux, pero el render en esos sistemas no está validado. En Windows puedes usar `py -3` si tu instalación de Python no ofrece el comando `python`.
+> Los requisitos por funcionalidad (hardware mínimo y recomendado, versiones, comandos de verificación y alternativas) están en [requisitos.md](motion-studio/references/requisitos.md). El render solo se ha probado en **Windows 11, Direct3D 11 y NVIDIA RTX 3050**. Hay instalador para macOS/Linux, pero el render en esos sistemas no está validado. En Windows puedes usar `py -3` si tu instalación de Python no ofrece el comando `python`.
 
 ## Qué hay en este repositorio
 
@@ -243,8 +247,13 @@ Las herramientas compartidas viven en `~/.motion-studio`; puedes cambiar la ruta
 | [`motion-studio/scripts/preparar.py`](motion-studio/scripts/preparar.py) | Instalación y verificación de las herramientas (Playwright, Chromium, fuentes, numpy, Pillow, FFmpeg, GPU). |
 | [`motion-studio/assets/plantilla/`](motion-studio/assets/plantilla/) | Composición base, renderizador y herramientas de revisión. |
 | [`motion-studio/assets/plantilla/kit/`](motion-studio/assets/plantilla/kit/) | Kit de movimiento: cámara con encuadres, temblor y paralaje, transiciones entre planos y un ejemplo completo. |
+| [`motion-studio/assets/edicion/`](motion-studio/assets/edicion/) | Modo edición de videos grabados: análisis, corte en papel, línea de tiempo, render con FFmpeg y control de calidad. |
+| [`motion-studio/references/edicion.md`](motion-studio/references/edicion.md) | Flujo del modo edición, operaciones de la línea de tiempo, comprobaciones y qué está pendiente. |
+| [`tests/edicion/`](tests/edicion/) | Material sintético con respuestas conocidas y prueba de principio a fin del modo edición, más la regresión del modo animación. |
 | [`motion-studio/references/kit.md`](motion-studio/references/kit.md) | Guía del kit: principios de animación y timing, cómo diseñar y animar personajes, gramática de planos y transiciones. |
 | [`motion-studio/references/gpu.md`](motion-studio/references/gpu.md) | Configuración y diagnóstico de GPU. |
+| [`motion-studio/references/rubricas.md`](motion-studio/references/rubricas.md) | Rúbricas del 1 al 10 por funcionalidad: criterios medibles, errores frecuentes, detección, corrección y comprobación automática. |
+| [`motion-studio/references/requisitos.md`](motion-studio/references/requisitos.md) | Requisitos por funcionalidad: sistemas, hardware, versiones, instalación, verificación, limitaciones y alternativas. |
 | [`motion-studio/references/preproduccion.md`](motion-studio/references/preproduccion.md) | Clarificación de la idea, storyboard y aprobaciones antes del render. |
 | [`motion-studio/references/motion-graphics.md`](motion-studio/references/motion-graphics.md) | Criterios visuales y fuentes de la investigación. |
 | [`motion-studio/references/direccion-movimiento.md`](motion-studio/references/direccion-movimiento.md) | Análisis audiovisual de referencias, acciones y prueba animada antes de extender el estilo. |

@@ -81,9 +81,9 @@ Tras aprobar el brief, solicita un alcance que incluya **una prueba animada cort
 node render.mjs --prueba=2,6
 ```
 
-El modo captura solo ese intervalo en `review/pruebas/`, con la resolución y fps del proyecto y el mismo perfil `codificacion.final` que usará el completo; por defecto, CRF 12 y preset `slow`. Genera un MP4 **sin sonido**. La aprobación debe corresponder al acabado real: no presentes `--ritmo` (vista diagnóstica reducida) como esa muestra. La sincronización de audio se revisa en el primer completo de calidad alta; el renderizador no verifica aprobaciones humanas ni estilo automáticamente.
+El modo captura solo ese intervalo en `review/pruebas/`, con la resolución y fps del proyecto y el mismo perfil `codificacion.final` que usará el completo; por defecto, CRF 12 y preset `slow`. Incluye el intervalo de `audio/final.wav` si existe, recortado al primer fotograma capturado, sin renormalizar el volumen del fragmento. `--sin-audio` permite una prueba visual muda. La aprobación debe corresponder al acabado real: no presentes `--ritmo` (vista diagnóstica reducida) como esa muestra. Con mezcla disponible, revisa ya voz, impacto y corte; si falta o no puedes escucharla, deja esa revisión pendiente para el usuario o el completo; el renderizador no verifica aprobaciones humanas ni estilo automáticamente.
 
-Reproduce la prueba a velocidad normal y comprueba:
+Selecciona la dificultad real: si hay actuación y diálogo, la muestra debe incluirlos; una transición vistosa sola no valida al personaje. En piezas largas revisa también un plano de desarrollo al revisar el acto, sin añadir otra aprobación rutinaria. Reproduce la prueba a velocidad normal y comprueba:
 
 1. El cambio principal se entiende sin que las etiquetas tengan que explicarlo todo.
 2. Las poses, transformaciones o recorridos muestran una evolución real del sujeto.

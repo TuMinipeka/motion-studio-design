@@ -1,6 +1,6 @@
 # Kit de movimiento: curvas, cámara y transiciones
 
-El proyecto trae en `kit/` y `lib.js` piezas para el movimiento, la cámara y el montaje, que son iguales en cualquier estilo. Lo que se ve (personajes, objetos, escenarios) se diseña para cada pieza. Una cámara que solo hace zoom o un corte sin enlace no son un punto de partida aceptable.
+El proyecto trae en `kit/` y `lib.js` piezas para el movimiento, la cámara y el montaje, que son iguales en cualquier estilo. Lo que se ve (personajes, objetos, escenarios) se diseña para cada pieza. El kit ofrece recursos; un plano fijo o un corte directo son válidos cuando sirven al relato.
 
 Ejemplo completo y funcionando, pensado para 1080×1920, unos 8 s:
 
@@ -8,7 +8,7 @@ Ejemplo completo y funcionando, pensado para 1080×1920, unos 8 s:
 node render.mjs --pagina=kit/ejemplo.html --frames=1.2,3.6,6.5
 ```
 
-Ábrelo antes de escribir tu `index.html` y copia su estructura: planos como funciones, montaje con transiciones, principios de animación con `claves()` y `resorte()` (una pelota con anticipación, aplastamiento y rebote) y cámara calculada desde el sujeto.
+Consúltalo si necesitas un ejemplo de estructura: planos como funciones, montaje con transiciones, principios de animación con `claves()` y `resorte()` (una pelota con anticipación, aplastamiento y rebote) y cámara calculada desde el sujeto.
 
 Carga, en este orden: `lib.js`, `kit/camara.js` y `kit/transiciones.js`. La plantilla `index.html` ya los incluye.
 
@@ -29,9 +29,9 @@ Carga, en este orden: `lib.js`, `kit/camara.js` y `kit/transiciones.js`. La plan
 | Anticipación | 4–8 fotogramas (0,15–0,25 s), en sentido contrario a la acción |
 | Acción | 3–6 fotogramas si es un golpe; 10–20 si es un gesto |
 | Rebote o asentamiento | 6–12 fotogramas con `saleBack` o `resorte` |
-| Mantener la pose | El tiempo necesario para leerla (0,3–0,8 s). Nunca congelada: respiración y deriva con `ruidoSuave()` |
+| Mantener la pose | El tiempo necesario para leerla (0,3–0,8 s). Puede ser quieta; movimiento secundario solo si expresa el estado del sujeto |
 
-Una acción sin anticipación ni asentamiento se ve mecánica.
+Estos tiempos son orientativos: un gesto delicado no necesita el rebote de un golpe. Varía las curvas según peso e intención.
 
 ## Personajes: diséñalos para cada pieza
 
@@ -44,10 +44,10 @@ Diseña el personaje que pida el brief y anímalo con estos principios, usando `
 - **Peso y equilibrio.** El cuerpo entero participa en cada gesto. Cuando sube un brazo, el hombro sube, el torso se inclina un poco y la cabeza compensa. Nada se mueve solo.
 - **Escalona los movimientos.** Los ojos van primero, luego la cabeza, luego el torso y al final los brazos y el pelo: desfasa sus claves 2–4 fotogramas. El pelo, la ropa y los objetos colgantes siguen con retraso y se asientan con `resorte()`.
 - **Arcos, no líneas.** Las manos y la cabeza se mueven en arco entre poses: interpola un ángulo, no una posición recta.
-- **Anticipación y asentamiento.** Toda acción empieza con un pequeño movimiento contrario y termina pasándose y volviendo (`saleBack`, `resorte`).
+- **Anticipación y asentamiento.** Úsalos según peso e intención; no impongas rebote a miradas, diálogo o manos que deben mantener contacto.
 - **Silueta legible.** Cada pose clave se entiende en negro sobre blanco. Si dos poses tienen la misma silueta, el cambio no se lee.
 - **La cara cuenta más que el cuerpo** en formato vertical. Párpados, cejas, dirección de la mirada y un parpadeo a tiempo transmiten más que un brazo que sube. Planifica primeros planos para la emoción.
-- **Vida en reposo.** Una pose mantenida respira (escala del pecho de ±1–2 % con `Math.sin(t)`), parpadea cada 2–5 s y deriva un poco con `ruidoSuave()`. Nunca debe quedar congelada.
+- **Vida en reposo.** Una pose mantenida respira (escala del pecho de ±1–2 % con `Math.sin(t)`), parpadea cada 2–5 s y deriva un poco con `ruidoSuave()`. Respeta una inmovilidad deliberada; evita balanceos automáticos de todas las partes.
 
 Antes de extender el personaje a toda la pieza, haz una prueba de movimiento de su gesto principal con `--prueba` y revísala reproduciéndola.
 
@@ -69,7 +69,7 @@ paralaje(ctx, cam, cam0, 0.35, W, H, dibujarFondo);            // capas a otra d
 - **`primerPlano`**, para la emoción.
 - **`detalle`**, para un objeto o dato concreto.
 
-Cambia de escala o de ángulo cada 2–4 s; `ritmo.py` lo mide. Corta en la acción: el corte cae en mitad del gesto, no antes ni después. Para seguir un salto, mueve la cámara con la altura y abre el plano. No dejes que la cabeza salga del cuadro sin intención.
+Cambia de escala al revelar información o seguir la acción; `ritmo.py` no identifica ángulos ni evalúa el motivo del corte. Acota inicio, fin y zoom máximo; evita multiplicar el zoom por el tiempo indefinidamente. Verifica extremos y cruces de plano para que ojos, manos y texto necesario no queden recortados. Corta en la acción: el corte cae en mitad del gesto, no antes ni después. Para seguir un salto, mueve la cámara con la altura y abre el plano. No dejes que la cabeza salga del cuadro sin intención.
 
 ## Transiciones: `kit/transiciones.js`
 

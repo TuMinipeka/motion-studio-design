@@ -4,6 +4,127 @@ Las entradas describen cambios del repositorio, no versiones publicadas ni garan
 
 ## Sin versión publicada — 2026-11-03
 
+### Coherencia de la guía al publicar
+
+- Se corrige una frase antigua del Paso 0 que aún enumeraba la edición de grabaciones como no disponible. Ahora remite al modo edición y conserva sus límites documentados.
+
+### Modo edición de videos grabados (fases 1–3 de la propuesta)
+
+**Problema.** La skill solo podía dibujar videos. Editar una grabación (el usuario hablando a cámara, pantallas de OBS) era imposible: no había ingesta, transcripción, línea de tiempo de clips ni render de video real. La propuesta aprobada (análisis → planificación → edición → render → evaluación → iteración) se implementa por fases. Esta entrega cubre las fases 1–3.
+
+**Qué se añade:**
+- **`preparar.py --perfil`:** guarda el perfil del equipo en `estado.json`.
+  - Prueba de verdad cada codificador H.264 (NVENC, AMF, QSV, VideoToolbox, x264).
+  - Mide GPU y VRAM, RAM, disco y núcleos.
+  - Comprueba Whisper: CUDA solo si carga y transcribe.
+  - Fija el nivel efectivo (núcleo, completo o avanzado).
+- **`preparar.py --edicion [--modelo] [--whisper-gpu]`:** instala el nivel completo (faster-whisper y el modelo).
+- **`nuevo.py --edicion`:** proyecto con `fuentes/` y las herramientas de `assets/edicion/`, más `verificar.py` y `ritmo.py` de la plantilla.
+- **`analizar.py`:**
+  - ingesta;
+  - salida propuesta desde la cámara (nada fijo);
+  - copias a fps constante con el codificador del perfil;
+  - sincronía por correlación de ataques de audio;
+  - transcripción por palabra;
+  - bordes de frase corregidos con la energía (Whisper adelanta los tiempos);
+  - sonidos sin palabra (muletillas que Whisper omite);
+  - palabras sin voz (alucinaciones);
+  - tomas repetidas con la elegida y el motivo;
+  - luz por segundo y escenas de pantalla.
+- **`planificar.py`:** el corte en papel (`GUION-MONTAJE.md` y `analisis/guion.json`). Quita tomas descartadas, muletillas, alucinaciones y pausas largas, con márgenes medidos sobre la voz real y zoom alterno en los jump cuts.
+- **`montaje.py`:** la línea de tiempo como fuente de verdad.
+  - Operaciones: `validar`, `info [--palabras]`, `cortar`, `quitar --palabras|--desde/--hasta`, `layout completo|pantalla|pantalla+pip` (pantalla sincronizada por el desfase), `zoom`, `transicion`, `diff` y `deshacer`.
+  - Se guardan versiones y se valida antes de guardar.
+  - Los bordes se ajustan a fotograma y a pausas entre palabras, y no se crean clips de menos de 0,2 s.
+- **`editar.py`:**
+  - render por segmentos con caché por hash;
+  - revisión con el codificador por hardware y final con x264 (configurable en `salida`);
+  - voz con muestras exactas y microfundidos solo donde la voz salta;
+  - `loudnorm` en dos pasadas;
+  - salida BT.709 en `yuv420p`.
+- **`qc.py`:**
+  - **Bloqueante:** montaje válido; cortes dentro de palabras o con la voz sonando; palabras del guion perdidas; duración; clics; WER de la retranscripción; determinismo de un segmento; `verificar.py` en el final.
+  - **Aviso:** lo quitado que vuelve, jump cuts sin cambio y silencios largos.
+- **`verificar.py`:** sin `motion.config.json`, toma la salida y la duración de `montaje.json`.
+- **Pruebas:** `tests/edicion/sintetico.py` (material con respuestas conocidas) y `tests/edicion/probar.py` (de principio a fin, fallos provocados y regresión del modo animación).
+- **Documentación:**
+  - `references/edicion.md`;
+  - rúbricas §15–19 en `rubricas.md`;
+  - la sección 9 de `requisitos.md`;
+  - "Dos modos" en `SKILL.md`, cuya descripción incluye ahora la edición de grabaciones;
+  - el README.
+
+**Validación** (Windows 11, RTX 3050, Ryzen 7 7445HS):
+- **`probar.py`: 22/22.**
+  - Desfase medido 1,370 s frente a 1,37 s esperados.
+  - Las 2 tomas repetidas agrupadas y resueltas a favor de la versión completa.
+  - Las 5 frases que se conservan, enteras.
+  - Las 2 tomas descartadas y la muletilla, fuera.
+  - Render final 1080×1920 con `qc.py --retranscribir --determinismo` OK (WER 0 %) y `verificar.py` OK, incluidos BT.709 y −1,0 dBTP.
+  - Los tres fallos provocados (corte dentro de una palabra, palabra perdida, clic) se detectan.
+  - La plantilla de animación pasa `auditar.mjs`, `--determinismo`, `--final` y `verificar.py`.
+- **Tiempos con 33 s de material:**
+  - transcripción en CPU: 18–23 s con large-v3-turbo;
+  - render de revisión: unos 5 s;
+  - render final: 10–16 s.
+- **Nivel núcleo** (sin transcripción): funciona; deja avisos de silencios de unos 0,6–0,7 s.
+- **Errores encontrados y corregidos durante la validación:**
+  - Whisper daba finales 0,1–0,3 s antes que la voz real, lo que recortaba sílabas.
+  - Un cambio de layout sobre voz continua llevaba microfundido, lo que dejaba un hueco a mitad de palabra.
+  - `quitar` no eliminaba una palabra más corta de 0,2 s.
+  - La API de PyAV instalada con Python 3.14 rompía la lectura de archivos de faster-whisper; ahora se le pasa el audio ya decodificado.
+
+**Límites:**
+- **Solo material sintético** (voz de Windows, sin ruido real ni muletillas naturales). Falta la grabación real del usuario para validar la elección de tomas, las muletillas y la sincronía móvil–OBS.
+- **Whisper en GPU sin probar:** no se instalaron las bibliotecas CUDA.
+- **macOS y Linux sin validar.**
+- **Pendiente (fases 4–6):** subtítulos, B-roll, pantalla dividida, zooms animados, gráficos con transparencia, música, limpieza de voz, color, curva de retención sobre la línea de tiempo y modo autónomo.
+
+### Rúbricas de calidad, requisitos por funcionalidad y verificación de la exportación
+
+**Problema:**
+- La revisión puntuaba siete aspectos generales sin criterios por funcionalidad. Las auditorías mostraron notas propias infladas y defectos técnicos que nadie detectaba: color sin etiquetar y true peak de −0,2 y +1,7 dBTP.
+- Los requisitos estaban repartidos entre el README y `preparar.py`, sin hardware mínimo, sin cifras de rendimiento y sin una lista de lo que la skill no hace.
+
+**Qué se añade:**
+- **`references/rubricas.md`:** escala común (1–10 con bandas de entrega) y 14 funcionalidades. Para cada una: criterios medibles, errores frecuentes, cómo se detectan, cómo se corrigen y qué comprobación automática la cubre.
+  - Funcionalidades: entorno, preproducción, animación, cámara, transiciones y montaje, motion graphics, texto y subtítulos, audio, sincronización, determinismo, ritmo, render, exportación y proceso de revisión.
+  - Reglas: una comprobación bloqueante que falle limita esa funcionalidad a 4, y la nota global no supera en más de 1 punto a la peor.
+  - Los fallos de `ritmo.py` exigen diagnóstico, pero no fijan la nota artística, como en la revisión del episodio Ojalá No.
+- **`references/requisitos.md`:** sistemas (solo Windows validado), hardware mínimo y recomendado, software y versiones, instalación, comandos de verificación, limitaciones y alternativas para cada funcionalidad. Incluye una tabla de lo que **no** está disponible (edición de grabaciones reales, subtítulos desde voz, capas con transparencia, etiquetas de color y limitador de pico), para avisar al usuario antes de empezar.
+- **`verificar.py` (plantilla):**
+  - **Falla (código 1)** si el códec no es H.264 o los píxeles no son `yuv420p`; si resolución, fps, duración o número de fotogramas no coinciden con la config; si hay fps variable; si falta el audio o no está a −14 ±1 LUFS cuando hay `audio/final.wav`; si audio y video duran distinto; o si hay negro casi puro de 1 s o más sin declarar.
+  - **Avisa** del color sin etiquetas BT.709, del true peak por encima de −1 dBTP y de la imagen congelada 4 s o más fuera de las pausas declaradas.
+  - Fuera del proyecto, no compara con la config.
+  - El informe queda en `review/verificacion.json`.
+- **`SKILL.md`:** el Paso 0 remite a los requisitos y a la lista de lo no disponible; el Paso 3 puntúa con las rúbricas; el Paso 4 sustituye la comprobación manual con `ffprobe` por `verificar.py`. El README enlaza ambos documentos.
+
+**Validación:**
+- **Render medido de la plantilla:** 6 s en 1080p60 con CRF 12 `slow` y 6 workers en la RTX 3050 tardó 21 s (unos 17 fotogramas por segundo, con el arranque incluido).
+- **`verificar.py` sobre:**
+  - **la plantilla:** OK, con aviso de color;
+  - **el video stickman:** OK, con avisos de color y de pico de −0,2 dBTP;
+  - **`manana.mp4`:** OK, con aviso de pico de +1,7 dBTP.
+- **Casos de fallo provocados:**
+  - 2 s de negro en mitad del video;
+  - `audio/final.wav` presente sin pista de audio;
+  - sonoridad de −47,9 LUFS;
+  - recodificación a 30 fps (detectó fps, duración y fotogramas).
+- **Ajuste durante la prueba:** con el umbral inicial (`pix_th` 0,06 y 0,25 s), el fondo azul marino de la plantilla y un fundido a negro de 0,4 s del video stickman se marcaban como negro. Se fijó en `pix_th` 0,02 y 1 s.
+
+**Límites:**
+- Las rúbricas no son una prueba automática de calidad artística; la nota sigue saliendo de ver y escuchar.
+- macOS y Linux siguen sin validar. El consumo de RAM por worker no está medido.
+- Los avisos de color y pico se mantienen hasta que se apruebe la mejora "perfil de publicación".
+
+### Revisión del episodio Ojalá No: encuadre y muestras con audio
+
+- El resultado real mostraba texto recortado por acercamientos y correcciones de ritmo mediante cámara continua. Se priorizan acción y lectura, cámara con límites y curvas según intención; se retiran las obligaciones de rebote, deriva permanente y puntuación artística condicionada al detector de ritmo.
+- `--prueba` incorpora el intervalo de `audio/final.wav` si existe, alineado al primer fotograma capturado, con AAC y el perfil final de video. `--sin-audio` mantiene la prueba muda; si falta mezcla se informa del pendiente. No añade normalización por fragmento ni modifica la autorización del completo.
+- Se evita renderizar obligatoriamente el ejemplo del kit y se pide que la muestra represente las dificultades reales, usando las revisiones existentes.
+- Validación: muestra aislada de 7,5 s/450 fotogramas 1080p60 en RTX 3050, cuatro instantes deterministas, decodificación y metadatos correctos. Fixture fraccional a 12 fps: audio alineado (correlación 0,99675), casos mudo y sin mezcla correctos. Sintaxis, auditoría y validador estructural correctos.
+- [Análisis, notas provisionales y comparación](docs/analysis/2026-11-03-ojala-review.md). Se verifica una mejora de lectura, no una nota global 9/10 ni retención; reproducción/escucha perceptiva pendiente. El proyecto original se conserva.
+
 ### Comprobaciones adicionales al preparar el commit
 
 - Sintaxis Python/JavaScript, configuración JSON, enlaces locales y validación estructural de la skill correctos. La auditoría de la plantilla revisó cinco archivos sin errores ni avisos.
