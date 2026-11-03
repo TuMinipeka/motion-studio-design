@@ -124,7 +124,7 @@ Requisitos del equipo: los prepara `scripts/preparar.py` (Paso 0). `render.mjs` 
 
 No presentes una captura sin revisar como resultado definitivo. Tras la autorización de fotogramas, empieza por unas pocas imágenes de escenas clave para comprobar composición y tipografía antes de animar todo. Puedes mostrarlas como pruebas de estilo y pedir correcciones; una imagen estática no demuestra fluidez ni sincronización. Continúa la revisión dentro del alcance autorizado.
 
-**Antes de extender el estilo a toda la pieza, prueba movimiento real.** Con autorización para ello, usa `node render.mjs --prueba=2,6` sobre un intervalo representativo ajustado a la duración del proyecto. Sigue `references/direccion-movimiento.md`: reproduce y muestra la prueba, valida acción y enlace entre planos y corrige la deriva hacia diapositivas. Si solo se autorizaron imágenes, pide ampliar el alcance a la prueba. No afirmes que el lenguaje de referencia quedó validado mediante imágenes fijas.
+**Antes de extender el estilo a toda la pieza, prueba movimiento real en calidad alta.** Con autorización para ello, usa `node render.mjs --prueba=2,6` sobre un intervalo representativo ajustado a la duración del proyecto. La muestra usa resolución, fps y el perfil `codificacion.final` del proyecto, igual que `--final`. Sigue `references/direccion-movimiento.md`: reproduce y muestra la prueba y valida acción, enlace entre planos y acabado. Ofrece «Aprobar y generar el video completo en esta calidad»; aceptar esa opción autoriza continuar con `--final` y evita una segunda aprobación idéntica. Si solo se autorizaron imágenes, pide ampliar el alcance a la muestra. No afirmes que el movimiento quedó validado con imágenes fijas.
 
 **Antes de la hoja de contacto, comprueba el contrato con dos herramientas automáticas.** La auditoría estática y la comparación de fotogramas detectan ciertas violaciones; no demuestran por sí solas la corrección de todos los instantes ni la calidad audiovisual:
 
@@ -166,23 +166,24 @@ node render.mjs --ritmo     # vista del video entero a 10 fps -> review/ritmo/vi
    - Puesta en escena: encuadres, cámara, poses y transiciones que aporten al relato.
    - Fidelidad a la identidad de marca.
    - Sincronización entre sonido y animación.
-3. Corrige los 3 problemas más graves y vuelve al paso 1, buscando al menos 8/10 en los criterios aplicables. Anota en `REVISION.md` evidencia concreta (escena/tiempo, problema y corrección), no solo puntajes. Comprueba también que el guion cumple el brief y que las afirmaciones tienen respaldo. Como pauta, realiza hasta tres rondas; si persisten defectos, presenta los pendientes y acuerda cómo continuar, sin subir notas para poder avanzar. No puntúes sonido o fluidez que no hayas podido observar: márcalos pendientes y planifica su comprobación en el borrador. Marca «no aplica» cuando un criterio no corresponda al brief, como sincronización sonora en una pieza silenciosa.
-4. **Pregunta antes del render completo mediante un aviso breve.** Muestra las pruebas revisadas y resume versión, cambios, duración, orientación, audio, entrega y pendientes con palabras sencillas. Mantén resolución, fps, GPU, codificación y ruta exacta documentados en `BRIEF.md`; muéstralos si ayudan a decidir o se solicitan. Ofrece borrador, final o ambos con una recomendación ajustada al estado de la revisión. Aprobar el guion o los fotogramas no autoriza por sí solo un MP4 completo. Un cambio sustancial de mensaje, estilo o entregable requiere confirmar el alcance actualizado; usa las decisiones ya aprobadas para el resto.
+3. Corrige los 3 problemas más graves y vuelve al paso 1, buscando al menos 8/10 en los criterios aplicables. Anota en `REVISION.md` evidencia concreta (escena/tiempo, problema y corrección), no solo puntajes. Comprueba también que el guion cumple el brief y que las afirmaciones tienen respaldo. Como pauta, realiza hasta tres rondas; si persisten defectos, presenta los pendientes y acuerda cómo continuar, sin subir notas para poder avanzar. No puntúes sonido o fluidez que no hayas podido observar: márcalos pendientes y planifica su comprobación en el primer video completo de calidad alta. Marca «no aplica» cuando un criterio no corresponda al brief, como sincronización sonora en una pieza silenciosa.
+4. **Conecta la aprobación de la muestra con el video completo.** Antes del aviso, muestra la prueba revisada y resume versión, duración, orientación, audio, entrega y pendientes con palabras sencillas. La opción recomendada, cuando la muestra cumple lo acordado, es «Aprobar y generar el video completo en esta calidad»: autoriza realizar la pieza completa con `--final`, conservando el acabado, resolución, fps, recursos y perfil de codificación aprobados. Registra el alcance en `BRIEF.md`. Una vez aceptado, continúa sin pedir de nuevo la misma aprobación. Si el usuario solo expresó que le gusta y aún no autorizó la exportación, usa ese aviso breve para concretarla. Ofrece ajustar la muestra o un borrador reducido solo como alternativa explícita; nunca interpongas este último automáticamente. Confirma únicamente cambios sustanciales de alcance o calidad.
 
 ## Paso 4: renderizado completo
 
-Ejecuta únicamente el modo autorizado. Si se autorizó solo un borrador, preséntalo y solicita aprobación antes de `--final`. Si ambos modos se autorizaron expresamente, revisa el borrador antes del final sin pedir la misma autorización de nuevo. No ocultes defectos pendientes por haber superado las comprobaciones técnicas.
+Tras aceptar «Aprobar y generar el video completo en esta calidad», desarrolla y revisa la pieza y ejecuta directamente `--final`. El primer video completo es una entrega de revisión en calidad alta: todavía puede recibir correcciones narrativas, visuales o sonoras. Mantén el perfil aprobado; «borrador» como estado de revisión no significa reducir resolución, fps o calidad. `--borrador` queda disponible solo si el usuario pide expresamente esa alternativa. No ocultes defectos pendientes por haber superado las pruebas técnicas.
 
 ```bash
-node render.mjs --borrador   # crf 16, para revisar el video completo -> exportaciones/<nombre>_borrador.mp4
-node render.mjs --final      # crf 12 + slow                          -> exportaciones/<nombre>.mp4
+node render.mjs --final      # primer completo con la calidad aprobada -> exportaciones/<nombre>.mp4
+# Solo si el usuario solicita una copia reducida para revisar:
+# node render.mjs --borrador  # perfil borrador, no es un paso obligatorio
 ```
 
 - Al arrancar imprime el renderizador WebGL real. Comprueba que sea la GPU esperada; si avisa de SwiftShader o de otra GPU, detente y arréglalo (`references/gpu.md`) en vez de esperar un render lento.
 - Renderiza por segmentos de 5 s: si se interrumpe, al relanzar solo rehace los que faltan.
 - Verifica el archivo final con `ffprobe` (códec h264, `yuv420p`, resolución y fps de `motion.config.json`) antes de entregarlo.
-- Pasa `python ritmo.py exportaciones/<nombre>_borrador.mp4` al borrador: confirma con el video codificado lo que midió `--ritmo`.
-- Reproduce el borrador, o la versión disponible dentro del alcance autorizado, para revisar ritmo, transiciones, lectura y audio cuando tu entorno lo permita. Un conjunto de imágenes y una medición de LUFS no sustituyen esa revisión; declara cualquier comprobación audiovisual pendiente y solicita ayuda del usuario si hace falta.
+- Pasa `python ritmo.py exportaciones/<nombre>.mp4` al primer completo en calidad alta: confirma con el video codificado lo que midió `--ritmo`.
+- Reproduce el primer completo en calidad alta, o la versión disponible dentro del alcance autorizado, para revisar ritmo, transiciones, lectura y audio cuando tu entorno lo permita. Un conjunto de imágenes y una medición de LUFS no sustituyen esa revisión; declara cualquier comprobación audiovisual pendiente y solicita ayuda del usuario si hace falta.
 
 ## Ejemplos
 

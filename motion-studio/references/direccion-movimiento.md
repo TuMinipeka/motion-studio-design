@@ -78,7 +78,7 @@ Tras aprobar el brief, solicita un alcance que incluya **una prueba animada cort
 node render.mjs --prueba=2,6
 ```
 
-El modo captura solo ese intervalo en `review/pruebas/`, con los fps y resolución del proyecto, y genera un MP4 **sin sonido**. Es una herramienta para revisar movimiento; no comprueba el estilo ni la aprobación humana automáticamente. La sincronización de audio se revisa aparte en el borrador autorizado.
+El modo captura solo ese intervalo en `review/pruebas/`, con la resolución y fps del proyecto y el mismo perfil `codificacion.final` que usará el completo; por defecto, CRF 12 y preset `slow`. Genera un MP4 **sin sonido**. La aprobación debe corresponder al acabado real: no presentes `--ritmo` (vista diagnóstica reducida) como esa muestra. La sincronización de audio se revisa en el primer completo de calidad alta; el renderizador no verifica aprobaciones humanas ni estilo automáticamente.
 
 Reproduce la prueba a velocidad normal y comprueba:
 
@@ -87,7 +87,7 @@ Reproduce la prueba a velocidad normal y comprueba:
 3. El enlace entre planos mantiene intención, foco o continuidad.
 4. El ritmo y el lenguaje coinciden con las propiedades de referencia realmente observadas.
 
-Muestra la prueba al usuario y usa el aviso breve de [avisos-creativos.md](avisos-creativos.md) para validar la experiencia antes de extenderla. Describe diferencias visibles y recomienda una opción justificada; no pidas diagnosticar técnicas de animación. No basta con aprobar unas imágenes bonitas. Si tu entorno no reproduce video, pide esa revisión al usuario y deja el criterio pendiente; no te asignes una nota de fluidez por una hoja de contacto.
+Muestra la prueba al usuario y usa el aviso breve de [avisos-creativos.md](avisos-creativos.md): «Aprobar y generar el video completo en esta calidad» permite validar la experiencia y autorizar la exportación completa en calidad alta a la vez. Al aceptarlo, continúa con `--final` sin imponer un borrador reducido. Si necesita ajustes, corrige la muestra antes de multiplicar escenas. Si tu entorno no reproduce video, pide esa revisión al usuario y deja el criterio pendiente; no te asignes una nota de fluidez por una hoja de contacto.
 
 ## Fuentes
 

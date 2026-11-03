@@ -4,6 +4,14 @@ Las entradas describen cambios del repositorio, no versiones publicadas ni garan
 
 ## Sin versión publicada — 2026-11-02
 
+### Muestra aprobada y completo con la misma calidad alta
+
+- `--prueba` usa el perfil `codificacion.final` del proyecto en lugar de CRF 20/preset `fast`. Conserva resolución y fps; sigue siendo una muestra sin audio de hasta 10 segundos.
+- El aviso «Aprobar y generar completo» valida la muestra y autoriza continuar con `--final` en calidad alta. No se pide otra vez la misma aprobación ni se intercala automáticamente `--borrador`; este modo se conserva para quien lo elija expresamente.
+- El primer completo sigue sujeto a revisión y correcciones, con el acabado y calidad visual aprobados. La vista diagnóstica `--ritmo` no se presenta como una muestra de calidad final.
+- Validación: pruebas técnicas aisladas con los perfiles 12/slow (por defecto) y 17/medium (personalizado). En cada caso, la muestra de 1 s/12 fotogramas y el completo de 2 s/24 fotogramas conservaron 320 × 180 a 12 fps y las mismas opciones x264, verificadas en el flujo codificado; ambos archivos se decodificaron correctamente. Se validaron sintaxis, estructura y enlaces. No se produjo un video del usuario ni se evaluó un resultado artístico nuevo.
+
+
 ### Convención de commits y documentación continua
 
 - Se añaden `CONTRIBUTING.md` y `AGENTS.md` para mantener Conventional Commits, agrupar cambios por propósito y registrar mejoras junto con su código. La historia publicada se conserva.

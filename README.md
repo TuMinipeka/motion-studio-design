@@ -128,7 +128,7 @@ Propón primero el guion y usa mi identidad visual.
 La selección automática y la sintaxis de invocación dependen del agente. Si admite comandos de skill, usa su sintaxis correspondiente; por ejemplo, `/motion-studio` en Claude Code. En otros entornos, pide que lea el `SKILL.md` instalado y lo aplique.
 
 > [!IMPORTANT]
-> Primero se aclaran el público, el objetivo, el mensaje y el lenguaje audiovisual de la referencia. El agente presenta un brief y un guion con acciones; te pregunta antes de crear el proyecto, capturar fotogramas y generar una prueba animada corta. Validas su movimiento antes de extenderlo a toda la pieza. Después pide autorización para exportar el borrador, el final o ambos. Estas aprobaciones son instrucciones del agente; el renderizador no las verifica automáticamente.
+> Primero se aclaran el público, el objetivo, el mensaje y el lenguaje de la referencia. Tras aprobar el brief, autorizas una muestra corta en calidad alta. Si te gusta, el aviso «Aprobar y generar el video completo en esta calidad» autoriza continuar directamente con esa misma calidad. El primer completo se revisa y corrige en calidad alta; un borrador reducido se genera solo si lo eliges expresamente. El renderizador no verifica estas aprobaciones automáticamente.
 
 No necesitas llegar con referencias: el agente revisa el contexto disponible, propone una dirección y pregunta por las decisiones importantes que falten. Puedes consultar el [proceso de preproducción](motion-studio/references/preproduccion.md) y los [criterios de motion graphics y sus fuentes](motion-studio/references/motion-graphics.md).
 
@@ -161,9 +161,9 @@ mi-video/
 | :--- | :--- |
 | **Preproducción** | El agente aclara la idea, estudia la referencia y recomienda una dirección. Prepara el brief y un storyboard con acciones, poses, encuadres, cámara, transiciones y sonido. Revisas una propuesta comprensible y autorizas las pruebas. |
 | **Producción** | Se crea el proyecto y una muestra que resuelve las dificultades principales. Tras validar su movimiento, se desarrolla la animación con el lenguaje aprobado. El audio responde al brief y el render sigue siendo una función pura del tiempo. |
-| **Postproducción** | Se revisan montaje, ritmo, continuidad, legibilidad y sonido junto con las pruebas técnicas. Se corrigen problemas por plano/tiempo y, con tu autorización, se exporta borrador, final o ambos. MP4 con H.264 y `yuv420p`; CRF 16 en borrador y CRF 12/preset `slow` en final. |
+| **Postproducción** | Se revisan montaje, ritmo, continuidad, legibilidad y sonido. Aprobada la muestra y autorizada la continuación, el primer completo se exporta en la misma calidad alta con `--final`. La muestra y el completo usan `codificacion.final` (por defecto CRF 12/preset `slow`), resolución y fps del proyecto. `--borrador` es una alternativa opcional. |
 
-La revisión puntúa claridad del mensaje, atención inicial, legibilidad en móvil, acción y fluidez, puesta en escena (encuadres, cámara, poses y transiciones), identidad de marca y sincronización audiovisual. Busca al menos 8/10 con evidencia por escena y propone hasta tres rondas antes de consultar los problemas persistentes. Lo que no pudo observarse queda pendiente. Es una evaluación del agente, registrada en `REVISION.md`; no una garantía automática de calidad. Las imágenes fijas no sustituyen la reproducción del borrador para revisar ritmo y sonido.
+La revisión puntúa claridad del mensaje, atención inicial, legibilidad en móvil, acción y fluidez, puesta en escena (encuadres, cámara, poses y transiciones), identidad de marca y sincronización audiovisual. Busca al menos 8/10 con evidencia por escena y propone hasta tres rondas antes de consultar los problemas persistentes. Lo que no pudo observarse queda pendiente. Es una evaluación del agente, registrada en `REVISION.md`; no una garantía automática de calidad. Las imágenes fijas no sustituyen la reproducción del primer completo en calidad alta para revisar ritmo y sonido.
 
 <details>
 <summary><strong>Contrato de render y comandos de revisión</strong></summary>
@@ -175,7 +175,7 @@ Desde la carpeta del video:
 ```bash
 node auditar.mjs
 node render.mjs --determinismo
-node render.mjs --prueba=2,6  # intervalo autorizado, hasta 10 s; MP4 sin audio
+node render.mjs --prueba=2,6  # hasta 10 s; misma calidad final, sin audio
 node render.mjs --sheet
 python sheet.py
 ```
@@ -183,8 +183,9 @@ python sheet.py
 Tras completar la revisión y obtener autorización para el modo correspondiente:
 
 ```bash
-node render.mjs --borrador
-node render.mjs --final
+node render.mjs --final  # completo con la misma calidad que la muestra aprobada
+# Solo si el usuario elige una versión reducida:
+# node render.mjs --borrador
 ```
 
 El render trabaja en segmentos de 5 segundos y permite reanudar los que faltan tras una interrupción. Comprueba el MP4 final con FFprobe antes de entregarlo.

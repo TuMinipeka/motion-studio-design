@@ -81,8 +81,8 @@ La muestra reúne las dificultades reales del encargo: por ejemplo, una pose exp
 
 Espera la respuesta. Una corrección parcial, un mensaje que solo elige colores o la falta de respuesta no autorizan el resto. Usa la herramienta de preguntas con opciones disponible; si no existe, presenta la misma elección en un mensaje corto. No sustituyas la aprobación por una bandera automática.
 
-**Segunda autorización, antes del video completo.** Tras revisar las pruebas, resume cambios respecto al brief, comprobaciones pendientes y salida esperada con palabras sencillas. Documenta la configuración técnica real sin exigir al usuario comprenderla para elegir. Usa un aviso que recomiende borrador, final o ambos según el estado de la revisión. Ejemplo del contenido de la pregunta:
+**Aprobación de la muestra y autorización del completo en un solo aviso.** Tras revisar la muestra de calidad alta, resume la versión, los pendientes y la salida esperada con palabras sencillas. Recomienda «Aprobar y generar el video completo en esta calidad». Esa elección autoriza continuar con `--final` conservando la calidad visual, resolución, fps, recursos y perfil `codificacion.final` registrados. No vuelvas a pedir esa autorización ni generes un borrador reducido intermedio. Ejemplo del contenido de la pregunta:
 
-> Con el movimiento de esta prueba validado y esta configuración, ¿autorizas el MP4 de borrador, el final o ambos? Queda pendiente revisar el ritmo de la pieza completa y escuchar la mezcla en el borrador.
+> ¿Te gusta esta muestra y autorizas generar todo el video con esta misma calidad alta? Revisaremos el ritmo de la pieza completa y su mezcla en esa primera versión, manteniendo la calidad.
 
 Registra en `BRIEF.md` versión, alcance y palabras del usuario. La autorización cubre solo ese alcance; una ya concedida para la misma versión no se pide de nuevo. Estas son instrucciones para el agente: el renderizador no comprueba aprobaciones humanas automáticamente.

@@ -50,22 +50,18 @@ La aceptación cubre únicamente el alcance descrito y requiere una respuesta ex
 
 Muestra primero la prueba y di qué parte del storyboard demuestra. La primera opción solo se recomienda si la prueba la respalda; en caso contrario, recomienda la corrección necesaria.
 
-**Pregunta:** «¿Esta muestra se acerca a la experiencia que buscas?»
+**Pregunta:** «¿Te gusta esta muestra y quieres que genere todo el video con esta misma calidad alta?»
 
-- **Mantener esta dirección (Recomendada):** conserva este movimiento y aplica el lenguaje al resto del proyecto, dentro del alcance de producción acordado.
+- **Aprobar y generar completo (Recomendada):** aprueba el lenguaje y el acabado de la versión presentada y autoriza desarrollar y exportar el video completo con la misma calidad alta mediante `--final`, sin un borrador reducido intermedio.
 - **Más cercanía al personaje:** da más espacio a sus gestos y reacciones, y reduce elementos que compiten con él.
 - **Más fuerza en los cambios:** refuerza el contraste entre preparación, acción y consecuencia, conservando pausas para comprender.
 
 No recomiendes aceptar una prueba que sabes que falla. Cambia las alternativas según la dificultad real; no ofrezcas «más energía» a un encargo que necesita calma. Las imágenes fijas no sustituyen esta validación.
 
-### Autorizar la exportación
+### Alcance de la exportación aprobada
 
-Presenta versión, duración, orientación, audio, destino y pendientes en palabras sencillas. Registra la configuración técnica completa en el brief; evita hacer elegir CRF, fps o GPU de nuevo si ya están resueltos.
+Antes del aviso de la muestra, presenta versión, duración, orientación, audio, destino y pendientes. Registra resolución, fps y perfil `codificacion.final` en el brief; no hagas elegir parámetros técnicos que ya están resueltos.
 
-**Pregunta:** «¿Qué versión quieres generar con esta propuesta?»
+Aceptar «Aprobar y generar completo» autoriza el primer video completo en calidad alta. Continúa dentro de ese alcance y no pidas otra vez la misma aprobación. Conserva actuación, cámara, transiciones, recursos, resolución, fps y codificación aprobados. La muestra y el completo comparten ese perfil; la muestra sigue siendo sin audio y no acredita una mezcla todavía no escuchada.
 
-- **Borrador para revisar (Recomendada):** genera el video completo de revisión; el final se autoriza después.
-- **Borrador y final:** autoriza ambos; el agente revisa el borrador y corrige defectos dentro de lo aprobado antes del final. Si aparece un cambio sustancial, consulta el nuevo alcance.
-- **Final:** genera directamente la entrega final cuando la revisión disponible y el usuario lo permitan; declara las comprobaciones que solo podrán hacerse al reproducirla.
-
-La recomendación depende del estado real del proyecto. No conviertas «final» en la opción predeterminada para ahorrar una revisión.
+El primer completo puede requerir correcciones; se revisa manteniendo calidad alta. Solo ofrece un borrador reducido si el usuario lo pide o elige expresamente ahorrar recursos. Si la respuesta solo dice que le gusta y el aviso no incluía autorización de exportación, concreta esa autorización. Un cambio sustancial del entregable o de la calidad requiere confirmar el nuevo alcance.

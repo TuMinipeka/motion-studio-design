@@ -1,7 +1,7 @@
 // Motion Studio · render determinista de un video que es una función pura de t.
 //
 //   node render.mjs --frames=0,1.5,3      fotogramas sueltos        -> review/frames/
-//   node render.mjs --prueba=2,6          prueba de movimiento, sin audio (max. 10 s) -> review/pruebas/
+//   node render.mjs --prueba=2,6          muestra con calidad final, sin audio (max. 10 s) -> review/pruebas/
 //   node render.mjs --sheet               un fotograma por pulso    -> review/beats/ (luego: python sheet.py)
 //   node render.mjs --determinismo        comprueba que un fotograma depende solo de t (ver abajo)  [--t=0,1.5,3]
 //   node render.mjs --ritmo               vista a 10 fps del video entero -> review/ritmo/vista.mp4 y `python ritmo.py`
@@ -164,7 +164,7 @@ try {
       const salida = path.join(out, `movimiento-${desde}-${hasta}.mp4`), parcial = salida + '.part.mp4';
       const page = await abrirPagina();
       const ff = spawn('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'image2pipe', '-c:v', 'png',
-        '-framerate', String(FPS), '-i', '-', '-an', '-c:v', 'libx264', '-preset', 'fast', '-crf', '20',
+        '-framerate', String(FPS), '-i', '-', '-an', '-c:v', 'libx264', '-preset', cfg.codificacion.final.preset, '-crf', String(cfg.codificacion.final.crf),
         '-pix_fmt', 'yuv420p', '-movflags', '+faststart', parcial], { stdio: ['pipe', 'inherit', 'inherit'] });
       const terminado = new Promise((resolve, reject) => {
         ff.once('error', reject);
@@ -179,7 +179,7 @@ try {
         }
         ff.stdin.end(); await terminado;
         fs.renameSync(parcial, salida);
-        console.log(`OK prueba sin audio: ${salida} · ${(hasta - desde) / FPS} s · ${hasta - desde} fotogramas`);
+        console.log(`OK prueba sin audio: ${salida} · ${(hasta - desde) / FPS} s · ${hasta - desde} fotogramas · CRF ${cfg.codificacion.final.crf} / ${cfg.codificacion.final.preset}`);
       } finally {
         if (ff.exitCode === null) { ff.stdin.destroy(); ff.kill(); }
         await terminado.catch(() => {});
