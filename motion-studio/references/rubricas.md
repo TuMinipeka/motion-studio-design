@@ -46,7 +46,7 @@
 
 | Nota | Criterio |
 |---|---|
-| 9–10 | Se puede completar la frase "Para [público], este video mostrará [mensaje] mediante [evidencia]…". Cada plano define acción, cámara, enlace, sonido y papel en la curva. La curva tiene gancho, re-ganchos ligados al contenido, pausas declaradas y clímax. La suma de tiempos cuadra. |
+| 9–10 | Se puede completar la frase "Para [público], este video mostrará [mensaje] mediante [evidencia]…". Cada plano tiene la ficha de `preproduccion.md`: intención, cámara y composición, iluminación, acción, sonido y enlace, con tiempos y papel en la curva. La curva tiene gancho, re-ganchos ligados al contenido, pausas declaradas y clímax. La suma de tiempos cuadra. |
 | 7–8 | Todo lo anterior con algún plano poco concreto ("aparece el gráfico"). |
 | 5–6 | Guion de texto sin acciones ni cámara, o sin curva. |
 | ≤4 | Sin aprobación del usuario, o afirmaciones sin fuente. |

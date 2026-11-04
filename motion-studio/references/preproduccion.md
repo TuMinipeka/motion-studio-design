@@ -54,16 +54,58 @@ Elige una estructura que sirva al encargo: pregunta/respuesta, problema/demostra
 
 Formula una intención narrativa y un cambio perceptible: qué ocurre al principio, qué acción desarrolla la idea y qué consecuencia cierra la pieza. Diseña una apertura que despierte interés según el canal: una acción pendiente, una transformación, un contraste o una pregunta visual. Evita sustituir ese gancho por una promesa exagerada. Define también la emoción y el cierre; no conviertas todos los encargos en anuncios ni impongas conflicto dramático a una explicación que no lo necesita.
 
-Consulta `direccion-movimiento.md` para analizar una referencia y comprobar que la pieza no se convierte en láminas. No confundas contar el mismo tema con usar el mismo lenguaje audiovisual. Presenta el storyboard por planos, con la longitud necesaria para el proyecto. Cada plano debe definir:
+Consulta `direccion-movimiento.md` para analizar una referencia y comprobar que la pieza no se convierte en láminas. No confundas contar el mismo tema con usar el mismo lenguaje audiovisual. Presenta el storyboard por planos mediante la ficha siguiente; su extensión depende de la dificultad del proyecto.
 
-- Identificador, escena, inicio, fin, función narrativa y papel en la curva de energía: gancho, desarrollo, re-gancho, pausa, clímax o cierre (ver la sección siguiente).
-- Sujeto, escenario, composición y foco de la mirada.
-- Estado inicial, acción principal y consecuencia.
-- Intención y poses clave del personaje; para objetos o gráficos, estados clave de forma y disposición. No fuerces personajes en una pieza que no los necesita.
-- Encuadre y cámara: posición, recorrido o decisión de mantenerla fija, con una razón narrativa.
-- Preparación, acción, reacción/asentamiento y pausa de lectura o comprensión.
-- Enlace con el plano siguiente: corte, continuidad de acción, transformación u otro recurso motivado.
-- Texto o voz exactos si existen, música y efectos previstos, activos necesarios y origen.
+### Ficha breve por plano
+
+Usa una ficha por plano dentro de `STORYBOARD.md`, con la versión del brief en la cabecera del documento. Identifica cada plano y su escena, inicio, fin, duración y papel en la curva (gancho, desarrollo, re-gancho, pausa, clímax o cierre). Los tiempos de cabecera pertenecen al video; los tiempos de las acciones y sonidos son relativos al inicio del plano.
+
+| Campo | Decisión que debe quedar resuelta |
+| --- | --- |
+| **Intención** | Qué información o emoción aporta y por qué este plano es necesario. Explica qué debe entender o sentir el público. |
+| **Cámara y composición** | Sujeto, escenario, foco y distribución en cuadro; tipo de plano y ángulo. Define posición inicial/final y duración del recorrido, o cámara fija con motivo. Conserva espacio para la acción y los textos necesarios también en el mayor acercamiento. |
+| **Iluminación** | Fuente y dirección de la luz, carácter suave/duro, contraste y relación del sujeto con el fondo; sombras y tono de color relevantes para el relato. En gráficos planos, define el contraste entre figura y fondo y declara si no hay luz volumétrica ni sombras. |
+| **Acción** | Estado inicial → acción → consecuencia, con sus tiempos locales, poses o estados clave, preparación y asentamiento cuando procedan. Incluye el texto exacto y cuánto permanece legible; no fuerces personajes ni rebotes si no corresponden. |
+| **Sonido** | Voz exacta o referencia a una frase del guion aprobado; música, efectos y sus instantes o relación con la acción. Indica el silencio intencional o la ausencia de audio. Distingue lo previsto de una sincronización ya comprobada. |
+| **Enlace** | Plano de destino y tipo/duración del corte o transición; qué acción, posición, dirección, mirada o sonido conecta ambos. Explicita el contraste si rompes continuidad deliberadamente. En el último plano, describe el cierre y la salida de audio. |
+
+Escribe una o dos frases concretas por campo; añade claves o tiempos solo donde ayuden a ejecutar el plano. La ficha es una propuesta de realización, no una prueba de calidad ni una autorización de render.
+
+Para ahorrar repetición, define una vez por escena la luz, escenario, paleta y recursos con su origen (por ejemplo, `E01/L1`). En la ficha referencia esa definición y escribe solo las variaciones. Lo heredado debe poder localizarse; no dejes «igual al anterior» sin identificarlo. Mantén los activos y las fuentes comunes junto al storyboard o en el brief, sin otro documento obligatorio. Si ya existe un storyboard con estos datos, completa los campos ausentes conservando sus identificadores y tiempos.
+
+Plantilla para copiar dentro del storyboard:
+
+```markdown
+### P01 · E01 · 00:00.000–00:03.000 · 3 s · gancho
+- Intención: …
+- Cámara y composición: …
+- Iluminación: …
+- Acción: …
+- Sonido: …
+- Enlace: …
+```
+
+Ejemplo de dos planos conectados de una animación ilustrada. Son decisiones para esta pieza, no una estética predeterminada:
+
+**Común E01/L1:** escritorio de perfil; lámpara cálida a la izquierda, sombras suaves a la derecha y fondo menos contrastado que las manos. Recursos: mesa, móvil y cuaderno, ilustraciones propias propuestas. Pieza sin voz ni texto en pantalla.
+
+**P01 · E01 · 00:00.000–00:03.000 · 3 s · gancho**
+- **Intención:** mostrar la decisión de dejar la distracción y despertar interés por la tarea que comenzará.
+- **Cámara y composición:** detalle lateral fijo del escritorio; móvil a la izquierda y cuaderno cerrado a la derecha. Se ven mano, móvil y destino del gesto; la cámara fija permite leer la decisión.
+- **Iluminación:** E01/L1; el móvil no proyecta un brillo que compita con la mano.
+- **Acción:** 0–0,5 s, la mano duda sobre el móvil; 0,5–1,8 s, lo desliza hacia la izquierda; 1,8–3 s, vuelve y alcanza la tapa del cuaderno.
+- **Sonido:** roce durante el deslizamiento, sin música ni voz; un leve contacto a 2,8 s acompaña la mano en la tapa.
+- **Enlace:** corte directo a P02 a 3 s, conservando mano y cuaderno en el mismo lugar y la dirección del gesto.
+
+**P02 · E01 · 00:03.000–00:06.000 · 3 s · desarrollo**
+- **Intención:** hacer visible el comienzo de la tarea como consecuencia de la decisión anterior.
+- **Cámara y composición:** mismo detalle lateral fijo de P01; el cuaderno es el foco y la mano conserva espacio para abrirlo.
+- **Iluminación:** E01/L1, sin cambio de dirección o exposición en el corte.
+- **Acción:** 0–0,3 s, retoma la mano apoyada en la tapa; 0,3–1,5 s, abre el cuaderno; 1,5–3 s, deja la página en blanco visible y la mano se asienta.
+- **Sonido:** roce de papel entre 0,3 y 1,5 s; después queda silencio para reconocer el resultado.
+- **Enlace:** cierre en el cuaderno abierto; mantiene la imagen hasta 6 s y termina en silencio.
+
+Al completar una ficha, comprueba que sus seis campos describen decisiones ejecutables y que el enlace coincide con la entrada del destino. Si falta una decisión, márcala como pendiente y resuélvela antes de presentar ese plano como listo para animar. «Cinematográfico», «dinámico» o «sonido impactante» solos no completan un campo. Esta comprobación es editorial; no hay un validador automático de fichas todavía.
 
 Antes de aprobar, muestra un resumen legible por plano: qué ocurre, qué verá/sentirá el público y cómo conecta con el siguiente. Mantén el detalle de realización accesible sin convertirlo en un examen técnico. Tras autorizarse la producción, guarda el desarrollo completo en `STORYBOARD.md`, vinculado a la versión de `BRIEF.md`.
 

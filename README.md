@@ -141,7 +141,7 @@ El resultado se organiza en una carpeta de video. La plantilla aporta el código
 ```text
 mi-video/
 ├── BRIEF.md               Idea, guion, fuentes y autorizaciones por versión
-├── STORYBOARD.md          Planos, acciones, poses, cámara, transiciones y audio
+├── STORYBOARD.md          Fichas por plano: intención, cámara, luz, acción, sonido y enlace
 ├── index.html             Composición: window.seek(t) y window.ready
 ├── lib.js                 Easing y aleatoriedad con semilla
 ├── motion.config.json     Resolución, fps, duración, GPU y calidad
@@ -162,6 +162,8 @@ mi-video/
 | **Preproducción** | El agente aclara la idea, estudia la referencia y recomienda una dirección. Prepara el brief y un storyboard con acciones, poses, encuadres, cámara, transiciones y sonido. Revisas una propuesta comprensible y autorizas las pruebas. |
 | **Producción** | Se crea el proyecto y una muestra que resuelve las dificultades principales. Tras validar su movimiento, se desarrolla la animación con el lenguaje aprobado. El audio responde al brief y el render sigue siendo una función pura del tiempo. |
 | **Postproducción** | Se revisan montaje, ritmo, continuidad, legibilidad y sonido. Aprobada la muestra y autorizada la continuación, el primer completo se exporta en la misma calidad alta con `--final`. La muestra y el completo usan `codificacion.final` (por defecto CRF 12/preset `slow`), resolución y fps del proyecto. `--borrador` es una alternativa opcional. |
+
+El storyboard reúne una [ficha breve por plano](motion-studio/references/preproduccion.md#ficha-breve-por-plano): intención, cámara y composición, iluminación, acción, sonido y enlace, con identificador y tiempos. La guía incluye una plantilla y dos planos conectados de ejemplo. El agente resuelve esas decisiones y reutiliza lo común a cada escena; tú revisas una propuesta comprensible. Las fichas se revisan editorialmente; todavía no tienen validación automática.
 
 La revisión puntúa claridad del mensaje, atención inicial, legibilidad en móvil, acción y fluidez, puesta en escena (encuadres, cámara, poses y transiciones), identidad de marca y sincronización audiovisual. Busca al menos 8/10 con evidencia por escena y propone hasta tres rondas antes de consultar los problemas persistentes. Lo que no pudo observarse queda pendiente. Es una evaluación del agente, registrada en `REVISION.md`; no una garantía automática de calidad. Las imágenes fijas no sustituyen la reproducción del primer completo en calidad alta para revisar ritmo y sonido.
 

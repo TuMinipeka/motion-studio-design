@@ -4,6 +4,14 @@ Las entradas describen cambios del repositorio, no versiones publicadas ni garan
 
 ## Sin versión publicada — 2026-11-03
 
+### Ficha breve por plano en el storyboard
+
+- **Problema:** la lista de preproducción ya pedía acción, cámara y sonido, pero no ofrecía una ficha reutilizable ni exigía concretar la iluminación por plano.
+- **Cambio:** `preproduccion.md` integra seis campos (intención, cámara y composición, iluminación, acción, sonido y enlace), identificador, escena, tiempos y papel narrativo. Incluye plantilla y dos planos conectados. Las definiciones comunes se heredan por identificador dentro del storyboard o brief; se completan los storyboards existentes sin otro documento obligatorio ni nuevas aprobaciones.
+- **Adaptación:** permite cámara fija, gráficos planos sin sombras y piezas silenciosas; no impone iluminación volumétrica ni una estética. Los pendientes se declaran y se resuelven antes de presentar el plano como listo para animar.
+- **Validación:** revisión editorial de los dos planos (6 s en total, continuidad de mano, cuaderno, luz y audio), enlaces locales, formato y estructura de la skill. Se actualizan README, entrada de la skill y rúbrica de preproducción para usar la misma ficha.
+- **Límites:** esta entrega define el formato y su revisión editorial; no añade puntuación por escena ni un validador automático de storyboards. No se renderizó un video ni se acredita calidad audiovisual con el ejemplo escrito.
+
 ### Coherencia de la guía al publicar
 
 - Se corrige una frase antigua del Paso 0 que aún enumeraba la edición de grabaciones como no disponible. Ahora remite al modo edición y conserva sus límites documentados.
