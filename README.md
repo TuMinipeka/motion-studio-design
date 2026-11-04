@@ -194,6 +194,10 @@ La muestra incorpora la mezcla disponible, alineada al intervalo capturado; usa 
 
 Consulta la [revisión de un episodio real](docs/analysis/2026-11-03-ojala-review.md) para ver los defectos encontrados, la comparación controlada y los límites de estas comprobaciones.
 
+La [revisión de un corto de 2:30](docs/analysis/2026-11-03-video-3-review.md) documenta la aplicación y los límites de estas mejoras.
+
+La muestra codifica primero la imagen y une después la mezcla copiando el video, sin una segunda compresión. Para un gesto o detalle difícil de leer, el kit ofrece `encuadreZona()`; revisa también la densidad de las capas rasterizadas al acercarte.
+
 El render trabaja en segmentos de 5 segundos y permite reanudar los que faltan tras una interrupción. Comprueba el MP4 final con FFprobe antes de entregarlo.
 
 </details>

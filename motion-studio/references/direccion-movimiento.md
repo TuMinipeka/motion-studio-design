@@ -40,6 +40,8 @@ Elige el encuadre según lo que debe verse: un plano amplio puede establecer rel
 
 Un movimiento de cámara debe conservar orientación y tener una intención: acompañar una acción, mostrar escala, dirigir atención o cambiar la información disponible. En 2D puedes usar encuadre, recorte y capas cuando corresponda; usa profundidad real si la realización y la referencia lo requieren. Elige la técnica que produzca el efecto acordado con recursos viables.
 
+En un plano oscuro, decide qué detalle tiene que leerse y revisa ese foco a tamaño de entrega. Conserva el ambiente con luz localizada o separación de silueta; subir la exposición de toda la imagen puede destruir la intención. Un general establece el lugar; un corte a reacción puede revelar una emoción que ya se anima pero no se distingue. `encuadreZona()` en el kit ayuda a proteger el área necesaria, sin imponer una cuota de cortes.
+
 ### Actuación y poses
 
 Para personajes, concreta intención, silueta y poses de preparación, acción y reacción. Revisa mirada, peso, equilibrio, contacto con el suelo y con objetos; una mano debe alcanzar lo que toca y el entorno debe responder cuando corresponda. La expresión puede verse en postura y ritmo, además del rostro. No resuelvas una actuación cambiando solo la posición de un icono rígido.

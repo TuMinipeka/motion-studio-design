@@ -62,6 +62,17 @@ aplicarCamara(ctx, cam, W, H, temblor(t, [[tGolpe, 30, 0.45]]), camaraEnMano(t, 
 paralaje(ctx, cam, cam0, 0.35, W, H, dibujarFondo);            // capas a otra distancia, fuera de aplicarCamara
 ```
 
+**Zona de interés y nitidez.** Para una reacción, una mano o un texto, encuadra su región de acción en vez de ampliar toda la escena sin destino:
+
+```js
+const cam = encuadreZona({ x: 640, y: 290, ancho: 460, alto: 440 }, W, H, 0.08);
+aplicarCamara(ctx, cam, W, H);  // dibuja el mundo y termina con ctx.restore()
+```
+
+`encuadreZona` conserva el rectángulo completo con un margen en ambos ejes, también en horizontal. Incluye las poses extremas en la zona. Es una garantía geométrica para esa cámara sin giro; no detecta personajes, oclusiones ni juzga la composición. Si después interpolas, rotas o añades temblor, revisa otra vez los extremos.
+
+Si el sujeto se dibuja en una capa rasterizada, dimensiona esa capa para el mayor aumento de la toma: una capa de 600 px ampliada 2,1 veces necesita unos 1260 px de detalle de origen. Dibuja de nuevo a esa densidad y compón en sus dimensiones lógicas; ampliar los píxeles existentes no recupera detalle. Reserva esa densidad para las capas y planos que lo necesitan, con tamaños de caché fijos por toma; no dupliques toda la resolución o los fps por rutina.
+
 **Gramática de planos:**
 - **`general`** ubica la escena.
 - **`medio`**, para acciones con las manos.

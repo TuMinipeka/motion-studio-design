@@ -34,6 +34,19 @@ function encuadre(nombre, sujeto, H = 1920, foco = null) {
   return { x: foco ? foco[0] : x, y: foco ? foco[1] : y - alto * e.centro, zoom: H / (alto * e.visible), rot: 0 };
 }
 
+// Encuadra una zona del mundo (rostro, manos, texto, objeto) conservando sus cuatro bordes.
+// La zona debe incluir el recorrido de la acción, no solo su pose inicial. Cámara fija, sin rotación.
+// margen es una fracción de cada lado del cuadro; no depende de un estilo o tipo de sujeto.
+function encuadreZona(zona, W, H, margen = 0.08) {
+  const { x, y, ancho, alto } = zona;
+  if (![x, y, ancho, alto, W, H, margen].every(Number.isFinite)
+    || ancho <= 0 || alto <= 0 || W <= 0 || H <= 0 || margen < 0 || margen >= 0.5) {
+    throw new Error('encuadreZona: zona y cuadro positivos; margen entre 0 y 0.5 (exclusivo).');
+  }
+  return { x: x + ancho / 2, y: y + alto / 2,
+    zoom: Math.min(W * (1 - 2 * margen) / ancho, H * (1 - 2 * margen) / alto), rot: 0 };
+}
+
 // Temblor por impulsos: [[t0, amplitud px, duracion s?], ...]. Decae y usa ruido suave con semilla (no vibra a lo loco).
 function temblor(t, impulsos, semilla = 1) {
   let dx = 0, dy = 0, rot = 0;

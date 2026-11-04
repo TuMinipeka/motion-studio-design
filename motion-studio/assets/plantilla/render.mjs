@@ -164,18 +164,16 @@ try {
       const [desde, hasta] = rangoPrueba;
       const out = path.join(root, 'review', 'pruebas'); fs.mkdirSync(out, { recursive: true });
       const salida = path.join(out, `movimiento-${desde}-${hasta}.mp4`), parcial = salida + '.part.mp4';
+      const videoParcial = salida + '.video.part.mp4';
       const audio = path.join(root, 'audio', 'final.wav');
       const hayAudio = !arg('sin-audio') && fs.existsSync(audio);
       const segundos = (hasta - desde) / FPS;
       if (!hayAudio) console.warn('AVISO: prueba visual sin audio; la sincronización y la mezcla quedan pendientes.');
       const page = await abrirPagina();
       const ff = spawn('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'image2pipe', '-c:v', 'png',
-        '-framerate', String(FPS), '-i', '-',
-        ...(hayAudio ? ['-i', audio, '-filter_complex',
-          `[1:a]atrim=start=${desde / FPS}:duration=${segundos},asetpts=PTS-STARTPTS,apad=whole_dur=${segundos}[a]`,
-          '-map', '0:v:0', '-map', '[a]', '-c:a', 'aac', '-b:a', '320k'] : ['-an']),
+        '-framerate', String(FPS), '-i', '-', '-an',
         '-c:v', 'libx264', '-preset', cfg.codificacion.final.preset, '-crf', String(cfg.codificacion.final.crf),
-        '-pix_fmt', 'yuv420p', '-t', String(segundos), '-movflags', '+faststart', parcial], { stdio: ['pipe', 'inherit', 'inherit'] });
+        '-pix_fmt', 'yuv420p', '-t', String(segundos), '-movflags', '+faststart', videoParcial], { stdio: ['pipe', 'inherit', 'inherit'] });
       const terminado = new Promise((resolve, reject) => {
         ff.once('error', reject);
         ff.once('close', code => code === 0 ? resolve() : reject(new Error(`FFmpeg fallo en la prueba (${code})`)));
@@ -188,7 +186,16 @@ try {
           await new Promise((resolve, reject) => ff.stdin.write(buf, err => err ? reject(err) : resolve()));
         }
         ff.stdin.end(); await terminado;
-        fs.renameSync(parcial, salida);
+        // La captura entrega solo imagen. Con el archivo cerrado se une la mezcla;
+        // el video ya codificado se copia sin una segunda compresión.
+        if (hayAudio) {
+          const mux = spawnSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-i', videoParcial, '-i', audio,
+            '-filter_complex', `[1:a]atrim=start=${desde / FPS}:duration=${segundos},asetpts=PTS-STARTPTS,apad=whole_dur=${segundos}[a]`,
+            '-map', '0:v:0', '-map', '[a]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '320k',
+            '-t', String(segundos), '-movflags', '+faststart', parcial], { stdio: 'inherit' });
+          if (mux.error || mux.status !== 0) throw new Error('FFmpeg fallo al unir la mezcla de la prueba');
+          fs.renameSync(parcial, salida); fs.unlinkSync(videoParcial);
+        } else fs.renameSync(videoParcial, salida);
         console.log(`OK prueba ${hayAudio ? 'con mezcla' : 'sin audio'}: ${salida} · ${segundos} s · ${hasta - desde} fotogramas · CRF ${cfg.codificacion.final.crf} / ${cfg.codificacion.final.preset}`);
       } finally {
         if (ff.exitCode === null) { ff.stdin.destroy(); ff.kill(); }

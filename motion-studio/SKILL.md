@@ -130,8 +130,8 @@ Requisitos del equipo: los prepara `scripts/preparar.py` (Paso 0). `render.mjs` 
 
 ### Estilo visual
 - **Parte del kit para el movimiento, la cámara y el montaje.** Lee `references/kit.md`; consulta o captura `kit/ejemplo.html` solo si necesitas comprobar una técnica, dentro del alcance autorizado. Úsalo para:
-  - **movimiento:** `claves()` con anticipación → acción → rebote (`saleBack`, `resorte()`) → pose mantenida con vida (`ruidoSuave()`);
-  - **cámara:** `encuadre()` desde el sujeto, con origen y destino acotados al foco narrativo; `temblor()` o `paralaje()` cuando la acción los justifique;
+  - **movimiento:** `claves()` para preparación → acción → consecuencia; asentamiento, rebote o movimiento secundario según peso e intención;
+  - **cámara:** `encuadre()` desde el sujeto, con origen y destino acotados al foco narrativo; `encuadreZona()` para proteger una región de acción; `temblor()` o `paralaje()` cuando la acción los justifique;
   - **enlaces:** `crearTransiciones().montaje()`.
 - **Los personajes se diseñan para cada pieza**, no salen de una plantilla. Sigue los principios de la sección "Personajes" de `references/kit.md`:
   - dibuja solo lo que el plano necesita;
@@ -140,12 +140,12 @@ Requisitos del equipo: los prepara `scripts/preparar.py` (Paso 0). `render.mjs` 
   - movimientos escalonados y en arco;
   - la emoción, en primeros planos de la cara.
 
-  Mover el personaje solo desplazándolo, animar un brazo con el resto congelado o una cámara que solo hace zoom queda por debajo del nivel de la skill. Prueba el gesto principal con `--prueba` antes de extenderlo a toda la pieza.
+  Si la escena pide actuación, desplazar el personaje o mover un brazo sin respuesta del cuerpo puede dejar el gesto sin peso. Un acercamiento o una pose quieta son válidos si revelan información o emoción. Prueba el gesto principal con `--prueba` antes de extenderlo a toda la pieza.
 - Convierte el storyboard en acciones con intención narrativa. Aplica los criterios de cámara, poses y montaje de `references/direccion-movimiento.md`; elige técnicas según la referencia y el objetivo. El usuario elige la experiencia creativa, mientras el agente resuelve cómo realizarla.
 - Lee `references/motion-graphics.md` al definir la dirección visual. Usa tipografía, formas, diagramas, datos o interfaces en movimiento para explicar el mensaje. Define un foco principal por escena y qué relación debe comunicar cada animación; no confundas cantidad de efectos con claridad.
 - Evita la receta de titular, panel, etiquetas y fundido repetida en cada escena. No uses gradientes, brillos, partículas o movimientos de cámara como relleno; pueden servir cuando la dirección aprobada los justifique. Una lista de efectos prohibidos no sustituye la puesta en escena: diseña la acción principal y su consecuencia.
 - En una escena narrativa, el personaje debe actuar e interactuar con su entorno, con poses y cambios legibles; no funcionar como un icono pequeño junto a párrafos. En una pieza gráfica, el objeto, diagrama o composición debe evolucionar con el mensaje. No conviertas una referencia narrativa en un dashboard sin acordar esa adaptación.
-- Una tipografía para los títulos y otra para la interfaz. Un único color de acento, salvo que las especificaciones del proyecto indiquen lo contrario. Carga las fuentes con `FontFace` y espera `document.fonts.ready` antes de poner `window.ready = true`.
+- Define tipografías y paleta desde el brief; para una pieza sencilla pueden bastar dos familias y un acento, sin convertirlo en una restricción para otros estilos. Carga las fuentes con `FontFace` y espera `document.fonts.ready` antes de poner `window.ready = true`.
 - Usa cambios cada 2 a 4 segundos como punto de partida, no como cuota de efectos: deja tiempo para leer, entender cifras y reconocer el producto. Si una escena necesita más tiempo, simplifica el contenido o extiende la pausa. La música acompaña esa comprensión.
 
 ### Sonido

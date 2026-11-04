@@ -4,6 +4,15 @@ Las entradas describen cambios del repositorio, no versiones publicadas ni garan
 
 ## Sin versión publicada — 2026-11-03
 
+### Revisión de 3.mp4: foco narrativo, encuadre por zona y muestras en dos etapas
+
+- **Problema observado:** en un corto lento y oscuro, una reacción importante quedaba en un encuadre amplio; al acercarse, sus capas rasterizadas necesitaban más detalle. Persistían reglas rígidas de cámara, rebotes, paleta y densidad sonora incompatibles con adaptar el estilo.
+- **Cambio:** `encuadreZona()` en el kit ajusta una región declarada en ambos ejes con margen. Preproducción, dirección y rúbricas priorizan lectura del foco, cobertura emocional y pausas motivadas; se documenta la densidad de capas para el acercamiento máximo, sin aumentar globalmente resolución o fps.
+- **Render:** `--prueba` separa la codificación de imagen y la unión del audio, copiando el video sin recomprimirlo. Conserva el perfil final, los tiempos alineados y los casos sin mezcla. La espera del intento inicial no se atribuye con certeza a un interbloqueo ni se afirma una mejora de velocidad.
+- **Validación:** 27 casos de encuadre y 7 entradas inválidas; muestra aislada de 4 s/240 fotogramas en 1080p60 con cinco instantes deterministas; cuatro casos de regresión de audio. Sintaxis, auditoría, enlaces y estructura de la skill correctos.
+- **Resultado y límites:** el rostro ocupa un 45,2 % más de altura geométrica y mejora su lectura en las imágenes revisadas. La toma requiere densidad extra y tuvo un coste alto, sin benchmark comparativo. No se acredita 9/10 global, fluidez perceptiva ni calidad sonora artística. El original se conserva.
+- [Análisis, notas, comparación y límites](docs/analysis/2026-11-03-video-3-review.md).
+
 ### Ficha breve por plano en el storyboard
 
 - **Problema:** la lista de preproducción ya pedía acción, cámara y sonido, pero no ofrecía una ficha reutilizable ni exigía concretar la iluminación por plano.

@@ -60,7 +60,7 @@
 
 | Nota | Criterio |
 |---|---|
-| 9–10 | Anticipación, acción, asentamiento y pose con vida en las acciones principales. Arcos, movimientos escalonados y peso. Ninguna parte se mueve sola con el resto congelado. La muestra `--prueba` resuelve la dificultad principal. |
+| 9–10 | Preparación, acción y consecuencia legibles según peso e intención. Arcos y movimientos escalonados cuando corresponden; las pausas expresivas pueden ser quietas. La muestra `--prueba` resuelve la dificultad principal. |
 | 7–8 | Buen timing con algún movimiento lineal o rígido secundario. |
 | 5–6 | Interpolación lineal o deslizamientos; personajes que se desplazan sin caminar; brazos sueltos. |
 | ≤4 | Láminas con fundidos; elementos que solo aparecen y desaparecen. |
@@ -75,7 +75,7 @@
   - revisión de `--prueba` a velocidad normal;
   - hoja de contacto.
 - **Corrección:**
-  - `claves()` con `saleBack` o `resorte()` en las llegadas;
+  - `claves()` con curvas elegidas por peso e intención; rebote solo cuando corresponda;
   - el cuerpo entero participa del gesto;
   - acercar el plano;
   - ver `references/kit.md`, sección "Personajes".
@@ -85,7 +85,7 @@
 
 | Nota | Criterio |
 |---|---|
-| 9–10 | El encuadre responde a la acción. La escala o el ángulo cambian cada 2–4 s salvo pausa intencionada. Temblor en los impactos y paralaje con motivo. El sujeto principal ocupa al menos un 25 % del alto en vertical. |
+| 9–10 | El encuadre permite leer el foco narrativo a tamaño de entrega. Una reacción importante tiene cobertura suficiente; los planos abiertos y las pausas tienen motivo. Luz y separación del fondo preservan el gesto. Cámara fija, corte, temblor o paralaje se eligen por intención, sin cuotas de cambios ni tamaño universal del personaje. |
 | 7–8 | Buena gramática con algún plano largo sin motivo. |
 | 5–6 | Una sola escala; zoom lento como único recurso. |
 | ≤4 | Sujeto cortado sin intención o ilegible en un móvil. |
@@ -123,7 +123,7 @@
 
 | Nota | Criterio |
 |---|---|
-| 9–10 | Un foco por escena. El diagrama u objeto **evoluciona con el mensaje**. Dos tipografías como máximo, un color de acento y jerarquía clara. El texto principal mide al menos 48 px de alto en 1080×1920 (36 px en 1920×1080). |
+| 9–10 | Un foco por escena. El diagrama u objeto **evoluciona con el mensaje**. Tipografías y paleta responden al brief, con jerarquía clara. El texto principal mide al menos 48 px de alto en 1080×1920 (36 px en 1920×1080). |
 | 7–8 | Claro, con alguna escena que explica con texto lo que podría mostrar. |
 | 5–6 | La receta "titular + panel + etiquetas + fundido" repetida. |
 | ≤4 | Párrafos en pantalla; texto ilegible en un móvil. |
@@ -165,7 +165,7 @@
 
 | Nota | Criterio |
 |---|---|
-| 9–10 | −14 LUFS ±1 integrado; true peak ≤ −1 dBTP. La densidad de golpes sigue la curva de energía. El estéreo se abre en los momentos clave. La voz es inteligible, con la música al menos 8 dB por debajo mientras se habla. |
+| 9–10 | −14 LUFS ±1 integrado; true peak ≤ −1 dBTP. Los acentos, silencios y el espacio sonoro sirven a la curva del relato; no se exige estéreo amplio ni golpes constantes. La voz es inteligible, con la música al menos 8 dB por debajo mientras se habla. |
 | 7–8 | Nivel correcto con algún tramo plano o un pico alto. |
 | 5–6 | Música continua sin relación con la imagen; estéreo estrecho y estático. |
 | ≤4 | Saturación, silencios no intencionados o voz tapada. |

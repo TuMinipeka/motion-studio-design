@@ -105,6 +105,8 @@ Ejemplo de dos planos conectados de una animación ilustrada. Son decisiones par
 - **Sonido:** roce de papel entre 0,3 y 1,5 s; después queda silencio para reconocer el resultado.
 - **Enlace:** cierre en el cuaderno abierto; mantiene la imagen hasta 6 s y termina en silencio.
 
+En los planos donde cambia una emoción, identifica qué gesto debe leerse (mirada, mano, postura) y compruébalo a tamaño de entrega. Un general puede establecer soledad, pero si el remate depende de los ojos, prevé un plano de reacción. En escenas oscuras revisa el foco y su separación del fondo, no solo el brillo medio del cuadro: oscuridad con intención no significa perder el gesto. Selecciona la muestra de revisión para incluir ese caso difícil y no solo un plano luminoso.
+
 Al completar una ficha, comprueba que sus seis campos describen decisiones ejecutables y que el enlace coincide con la entrada del destino. Si falta una decisión, márcala como pendiente y resuélvela antes de presentar ese plano como listo para animar. «Cinematográfico», «dinámico» o «sonido impactante» solos no completan un campo. Esta comprobación es editorial; no hay un validador automático de fichas todavía.
 
 Antes de aprobar, muestra un resumen legible por plano: qué ocurre, qué verá/sentirá el público y cómo conecta con el siguiente. Mantén el detalle de realización accesible sin convertirlo en un examen técnico. Tras autorizarse la producción, guarda el desarrollo completo en `STORYBOARD.md`, vinculado a la versión de `BRIEF.md`.
@@ -124,17 +126,17 @@ Antes de escribir los planos, dibuja la curva de toda la pieza como una lista de
 | Momento | Cuándo | Qué cambia en el contenido | Recurso visual y sonoro |
 | --- | --- | --- | --- |
 | Gancho | 0–3 s | La acción pendiente, el contraste o la pregunta visual | Los recursos más fuertes de la pieza |
-| Re-gancho | Cada 8–12 s en piezas de menos de 60 s; cada 15–25 s en piezas más largas | Un giro, una pregunta nueva, más en juego, un cambio de lugar o de escala, una revelación | Un recurso de la apertura y un golpe o cambio sonoro |
+| Re-gancho | Según el relato; 8–12 s en piezas cortas o 15–25 s en largas son referencias iniciales, no cuotas | Un giro, una pregunta nueva, más en juego, un cambio de lugar o de escala, una revelación | Un recurso de la apertura y un golpe o cambio sonoro |
 | Pausa | Donde la emoción la pida, con motivo y duración | Silencio, respiración antes de un giro | Va seguida de un momento fuerte |
 | Clímax de acto | Al final de cada acto | La consecuencia mayor del acto | Los recursos de la apertura, al menos igual de intensos |
-| Cierre | Final | La respuesta, la reflexión o la llamada | Puede ser más calmado, pero se sigue moviendo |
+| Cierre | Final | La respuesta, la reflexión o la llamada | Puede ser más calmado o quieto si el cierre lo necesita |
 
 Reglas para que la curva no se hunda:
 - **Cada re-gancho nace del contenido.** Abre la pregunta siguiente antes de cerrar la actual. Un flash o un zoom sin motivo no es un re-gancho.
 - **Cataloga los recursos de la apertura y repártelos.** Asigna al menos uno a cada clímax de acto. El último clímax no es más débil que el gancho.
-- **Las láminas de título duran 1,5 s como máximo y se mueven.** El gancho se paga con acción, no con una diapositiva.
-- **Las explicaciones se actúan.** El personaje u objeto hace lo que se explica. Ningún diagrama fijo dura más de 4 s y no hay fondos vacíos entre secciones.
-- **El sonido sigue la curva.** Cada re-gancho tiene su golpe o cambio sonoro, y la densidad de efectos no se desploma después del gancho.
+- **Los rótulos duran lo que necesitan para leerse y cumplir su función.** Recorta los tiempos que solo prolongan una información ya entendida; no les añadas movimiento para aprobar una métrica.
+- **Las explicaciones se actúan.** El personaje u objeto hace lo que se explica. Una pausa para comprender un diagrama puede ser válida; no prolongues una composición sin nueva información o intención.
+- **El sonido sigue la curva.** Los acentos y silencios sirven al relato; un re-gancho no requiere siempre un golpe, ni una caída de densidad sonora demuestra un defecto por sí sola.
 - **Una caída es una decisión, no un accidente.** Si un tramo debe ser calmado, decláralo como pausa con su motivo.
 
 Muestra la curva al usuario en el resumen del storyboard, con palabras sencillas: «a los 20 s descubre que el tiempo no vuelve; a los 45 s aparece el precio». Tras autorizarse la producción, guárdala en `STORYBOARD.md` y copia sus tiempos en `motion.config.json` → `curva`:
