@@ -134,6 +134,8 @@ No necesitas llegar con referencias: el agente revisa el contexto disponible, pr
 
 Una referencia de un corto con personajes requiere analizar actuación, entorno y montaje; compartir sus colores o su tema no basta. La [guía de dirección de movimiento](motion-studio/references/direccion-movimiento.md) explica cómo detectar una deriva hacia diapositivas y comprobar una muestra en reproducción. El 2D y el 3D son elecciones del encargo; ninguno garantiza por sí solo el acabado.
 
+La [guía de estilos](motion-studio/references/estilos.md) distingue corto narrativo, divulgación 3D, motion graphics y pixel art. La identidad y el acabado se fijan por proyecto; la tipografía retro puede acompañar un render 3D nítido.
+
 **No necesitas conocer animación.** El agente dirige la realización y utiliza los avisos de preguntas con opciones que ofrezca tu entorno. Te propone alternativas creativas concretas, recomienda la más adecuada y explica lo que verás o sentirás. Resuelve cámara, poses y transiciones sin preguntarte por cada técnica. Si el agente no dispone de avisos nativos, usa mensajes breves con las mismas opciones. Consulta los [ejemplos de avisos creativos](motion-studio/references/avisos-creativos.md).
 
 El resultado se organiza en una carpeta de video. La plantilla aporta el código base; durante la producción se añaden audio, revisión y exportaciones:
@@ -195,6 +197,8 @@ La muestra incorpora la mezcla disponible, alineada al intervalo capturado; usa 
 Consulta la [revisión de un episodio real](docs/analysis/2026-11-03-ojala-review.md) para ver los defectos encontrados, la comparación controlada y los límites de estas comprobaciones.
 
 La [revisión de un corto de 2:30](docs/analysis/2026-11-03-video-3-review.md) documenta la aplicación y los límites de estas mejoras.
+
+La [revisión de un Short de divulgación 3D](docs/analysis/2026-11-03-nevera-review.md) aplica criterios distintos: lectura del mecanismo, recorridos visibles e interfaz clara. El kit ofrece `comprobarPuntos3D()` para revisar puntos críticos con una cámara Three.js; las oclusiones siguen necesitando inspección visual.
 
 La muestra codifica primero la imagen y une después la mezcla copiando el video, sin una segunda compresión. Para un gesto o detalle difícil de leer, el kit ofrece `encuadreZona()`; revisa también la densidad de las capas rasterizadas al acercarte.
 

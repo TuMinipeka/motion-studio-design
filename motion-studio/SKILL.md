@@ -12,6 +12,8 @@ Cada video es una función pura del tiempo: dado `t`, siempre dibuja el mismo fo
 
 Ese contrato técnico no define el estilo: un video determinista también puede ser una presentación estática. El objetivo es realizar el lenguaje audiovisual del brief con acciones, evolución visual y montaje, no limitarse a reemplazar láminas con texto. El 2D es válido; ni el 3D ni añadir efectos corrigen por sí solos la falta de dirección.
 
+Al elegir o cambiar el lenguaje visual, consulta `references/estilos.md`: registra lenguaje y acabado en los campos existentes del brief. Conserva la identidad del proyecto; una divulgación 3D low-poly con tipografía retro y render nítido requiere criterios distintos de un corto ilustrado dramático o de pixel art. No heredes personajes, voces ni paleta de otro canal.
+
 Asume la dirección creativa y técnica. El usuario no necesita saber de animación: traduce su idea en narrativa, storyboard, actuación, cámara, transiciones y sonido. Lee `references/avisos-creativos.md` y usa avisos nativos de preguntas con opciones cuando estén disponibles: recomienda una alternativa concreta, explica el efecto visible en lenguaje sencillo y reserva las consultas para decisiones que cambien el resultado. Si no existe esa herramienta, usa un mensaje breve con las mismas opciones. No interrogues al usuario sobre técnicas que debes resolver tú.
 
 | Fase | Trabajo que dirige el agente | Evidencia |

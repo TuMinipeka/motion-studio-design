@@ -2,6 +2,8 @@
 
 Úsalas en el Paso 3 (revisión) y antes de entregar. Cada funcionalidad se puntúa del 1 al 10 **con evidencia**: tiempo o plano, medición o imagen revisada. Si algo no se pudo observar, se marca "pendiente". Si no corresponde al brief, "no aplica". Nunca se rellena con una nota estimada.
 
+Selecciona los criterios según el lenguaje y acabado del brief (`estilos.md`). En divulgación 3D, claridad del mecanismo y visibilidad de sus elementos tienen prioridad; en un corto narrativo, actuación y emoción. No traslades paletas, personajes ni cuotas de movimiento entre estilos.
+
 ## Escala común
 
 | Nota | Significado | Se puede entregar |
@@ -94,9 +96,10 @@
 - **Detección:**
   - duración media de plano en `ritmo.py` (aviso);
   - hoja de contacto, comprobando los bordes del cuadro;
-  - `--frames` en los picos de acción.
-- **Corrección:** `encuadre()` calculado desde el sujeto; seguir la altura del salto; cortar en la acción.
-- **Prueba automática:** parcial (cortes por minuto y plano medio).
+  - `--frames` en los picos de acción;
+  - en Three.js, `comprobarPuntos3D()` para puntos críticos declarados; revisión visual para oclusiones e interfaz.
+- **Corrección:** `encuadre()` calculado desde el sujeto; seguir la altura del salto; cortar en la acción. Para mecanismos 3D, conservar los extremos del recorrido mediante cámara, simplificación gráfica o planos conectados (`estilos.md`).
+- **Prueba automática:** parcial (cortes por minuto, plano medio y puntos 3D declarados; sin oclusiones).
 
 ## 5. Transiciones y montaje (edición)
 

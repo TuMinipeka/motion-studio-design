@@ -73,6 +73,18 @@ aplicarCamara(ctx, cam, W, H);  // dibuja el mundo y termina con ctx.restore()
 
 Si el sujeto se dibuja en una capa rasterizada, dimensiona esa capa para el mayor aumento de la toma: una capa de 600 px ampliada 2,1 veces necesita unos 1260 px de detalle de origen. Dibuja de nuevo a esa densidad y compón en sus dimensiones lógicas; ampliar los píxeles existentes no recupera detalle. Reserva esa densidad para las capas y planos que lo necesitan, con tamaños de caché fijos por toma; no dupliques toda la resolución o los fps por rutina.
 
+**Puntos críticos en Three.js (opcional).** Si el proyecto ya usa Three.js, `comprobarPuntos3D(camara, [{ id, punto }], margen)` proyecta sus `Vector3` en coordenadas normalizadas de pantalla (x de izquierda a derecha, y de arriba abajo). Devuelve `dentro` y `frente`, sin mutar los puntos. Actualiza la proyección de la cámara si cambias su fov o proporción y llama al diagnóstico después de fijar la cámara del instante.
+
+```js
+const revision = comprobarPuntos3D(cam, [
+  { id: 'entrada', punto: entradaDelFlujo },
+  { id: 'salida', punto: salidaDelFlujo },
+], 0.05);
+// Revisa los resultados en los instantes clave; no hace falta ejecutarlo en cada fotograma exportado.
+```
+
+Solo comprueba esos puntos, su profundidad y márgenes: no el volumen entero, oclusiones, textos del HUD ni legibilidad. El margen es del cuadro completo, no una zona segura de plataforma. Para una explicación espacial, aplica también `references/estilos.md`.
+
 **Gramática de planos:**
 - **`general`** ubica la escena.
 - **`medio`**, para acciones con las manos.

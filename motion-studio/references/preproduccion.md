@@ -30,7 +30,7 @@ Completa este brief en conversación; al autorizarse la producción, guárdalo e
 | Evidencia | Qué demostración, dato o ejemplo respalda el mensaje. |
 | Entrega | Canal, relación de aspecto, duración, resolución y fps. |
 | Dirección visual | Tono, composición, tipografía, paleta y movimiento. |
-| Lenguaje audiovisual | Infografía, interfaz, tipografía cinética o corto narrativo; propiedades de la referencia observadas y adaptaciones acordadas. |
+| Lenguaje audiovisual | Infografía, interfaz, tipografía cinética, divulgación 3D o corto narrativo; acabado (nítido, pixelado u otro), propiedades observadas y rasgos que se conservarán. Consulta `estilos.md` cuando cambie el lenguaje. |
 | Audio | Con o sin música/SFX; locución solo si se acuerda, con texto y recursos viables. |
 | Cierre y límites | Acción final si corresponde, contenido obligatorio, exclusiones y recursos disponibles. |
 

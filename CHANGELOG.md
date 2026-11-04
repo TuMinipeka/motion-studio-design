@@ -4,6 +4,15 @@ Las entradas describen cambios del repositorio, no versiones publicadas ni garan
 
 ## Sin versión publicada — 2026-11-03
 
+### Revisión de nevera_redes.mp4: divulgación 3D y visibilidad del mecanismo
+
+- **Problema observado:** un Short 3D low-poly con tipografía retro y acabado nítido perdía los extremos de sus flujos en el encuadre vertical; personajes y rótulos competían con la explicación. La guía no distinguía suficientemente este lenguaje del corto ilustrado o el pixel art y desaconsejaba los diagramas en el desarrollo.
+- **Cambio:** `references/estilos.md` concreta lenguaje, acabado e identidad en el brief existente. Para divulgación prioriza causa, recorrido y resultado; protege elementos críticos frente a recortes/oclusiones, reduce competencia de interfaz y distingue números ilustrativos de mediciones. Se actualizan entrada, dirección, preproducción, rúbricas y README, sin otro cuestionario ni aprobación rutinaria.
+- **Código:** `comprobarPuntos3D()` añade al kit un diagnóstico opcional de puntos del mundo para cámaras Three.js, con margen y profundidad; no requiere Three.js en proyectos 2D. No detecta oclusión, volumen completo, textos o calidad artística.
+- **Validación real:** copia aislada del proyecto identificado por SHA-256; muestra de 3,5 s/105 fotogramas en 1080p30 con RTX 3050, mezcla y CRF 12/slow; cuatro instantes deterministas y decodificación correcta. En cinco instantes, 2/4 → 4/4 puntos críticos dentro del margen tras abrir cámara y acortar recorridos. Pruebas de perspectiva/ortográfica, recorte, márgenes e inmutabilidad; sintaxis, auditoría y validador de la skill.
+- **Resultado y límites:** mejora provisional de claridad del plano de 6 a 8/10, sin acreditar 9/10 global, retención, fluidez percibida o mejora de velocidad. La muestra no lleva etiquetas de color y no sustituye la validación del final. Quedan pendientes escucha, salto/aterrizaje, precisión del guion y enlaces con los planos vecinos. Original y proyecto conservados.
+- [Análisis por estilo, notas, comparación y feedback](docs/analysis/2026-11-03-nevera-review.md).
+
 ### Revisión de 3.mp4: foco narrativo, encuadre por zona y muestras en dos etapas
 
 - **Problema observado:** en un corto lento y oscuro, una reacción importante quedaba en un encuadre amplio; al acercarse, sus capas rasterizadas necesitaban más detalle. Persistían reglas rígidas de cámara, rebotes, paleta y densidad sonora incompatibles con adaptar el estilo.

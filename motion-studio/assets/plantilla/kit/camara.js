@@ -1,5 +1,5 @@
 'use strict';
-// Motion Studio · kit/camara.js — cámara virtual 2D: encuadres con nombre, movimientos con claves, temblor y paralaje.
+// Motion Studio · kit/camara.js — cámara virtual 2D y diagnóstico opcional de puntos 3D.
 // Requiere lib.js. Todo es función de t.
 //
 //   const sujeto = { x: 540, y: 1500, alto: 900 };   // lo que filmas: centro, base (pies, suelo) y alto en px del mundo
@@ -45,6 +45,23 @@ function encuadreZona(zona, W, H, margen = 0.08) {
   }
   return { x: x + ancho / 2, y: y + alto / 2,
     zoom: Math.min(W * (1 - 2 * margen) / ancho, H * (1 - 2 * margen) / alto), rot: 0 };
+}
+
+// Diagnóstico opcional para Three.js: puntos del mundo imprescindibles para explicar una acción.
+// No detecta oclusiones, tamaño legible ni solapamientos con la interfaz. Úsalo en revisión.
+function comprobarPuntos3D(camara, puntos, margen = 0.05) {
+  if (!Array.isArray(puntos) || !puntos.length || !Number.isFinite(margen) || margen < 0 || margen >= 0.5) {
+    throw new Error('comprobarPuntos3D: puntos no vacíos y margen entre 0 y 0.5 (exclusivo).');
+  }
+  camara.updateMatrixWorld(true);
+  return puntos.map(({ id, punto }) => {
+    if (![punto.x, punto.y, punto.z].every(Number.isFinite)) throw new Error('comprobarPuntos3D: punto no finito');
+    const local = punto.clone().applyMatrix4(camara.matrixWorldInverse);
+    const p = punto.clone().project(camara), x = (p.x + 1) / 2, y = (1 - p.y) / 2;
+    const frente = local.z < 0;
+    return { id, x, y, frente, dentro: frente && p.z >= -1 && p.z <= 1
+      && x >= margen && x <= 1 - margen && y >= margen && y <= 1 - margen };
+  });
 }
 
 // Temblor por impulsos: [[t0, amplitud px, duracion s?], ...]. Decae y usa ruido suave con semilla (no vibra a lo loco).

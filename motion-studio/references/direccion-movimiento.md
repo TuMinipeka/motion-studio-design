@@ -58,7 +58,7 @@ Construye impacto mediante preparación y contraste: una pausa puede dar fuerza 
 
 En producción, usa la muestra para resolver los problemas difíciles de actuación, cámara y conexión entre planos, y extiende solo el lenguaje validado. Conserva proporciones, materiales, iluminación, dirección de movimientos y escala de elementos equivalentes.
 
-Construye siguiendo la curva de energía del storyboard (`preproduccion.md`, "Curva de energía y re-ganchos"). Los re-ganchos y los clímax de acto se animan con el mismo cuidado que la apertura, no con lo que sobra al final. El centro de la pieza no es una lección con diagramas: si un plano explica, el personaje u objeto actúa lo explicado. Al pasar `--ritmo`, revisa la tabla por tramos, no solo la media.
+Construye siguiendo la curva de energía del storyboard (`preproduccion.md`, "Curva de energía y re-ganchos"). Los re-ganchos y los clímax de acto se animan con el mismo cuidado que la apertura, no con lo que sobra al final. Si un plano explica, el diagrama u objeto muestra la relación o cambio relevante; la divulgación no necesita añadir actuación de personajes para justificarlo. Aplica `estilos.md` para proteger recorridos y elementos críticos. Al pasar `--ritmo`, revisa la tabla por tramos, no solo la media.
 
 En postproducción, revisa la secuencia completa a velocidad normal: apertura, progresión, pausas y cierre. Comprueba continuidad de poses y espacio, cortes, contacto con objetos, legibilidad y coordinación de imagen/sonido. Registra problemas por plano y tiempo en `REVISION.md`, corrige lo que cambie la experiencia y vuelve a observarlo. Las métricas y pruebas técnicas complementan esa reproducción.
 
