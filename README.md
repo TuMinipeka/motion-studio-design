@@ -129,6 +129,12 @@ Propón primero el guion y usa mi identidad visual.
 
 La selección automática y la sintaxis de invocación dependen del agente. Si admite comandos de skill, usa su sintaxis correspondiente; por ejemplo, `/motion-studio` en Claude Code. En otros entornos, pide que lea el `SKILL.md` instalado y lo aplique.
 
+Para repartir producción entre subagentes de Claude Code, usa la [guía de trabajo paralelo](motion-studio/references/paralelo.md), que incluye el contrato de archivos, dependencias y cola de render. Prompt breve:
+
+```text
+Usa /motion-studio con references/paralelo.md. Delega tareas independientes a subagentes de Claude en segundo plano, coordina archivos y renders, y respeta el flujo, las aprobaciones y la verificación de la skill.
+```
+
 > [!IMPORTANT]
 > Primero se aclaran el público, el objetivo, el mensaje y el lenguaje de la referencia. Tras aprobar el brief, autorizas una muestra corta en calidad alta. Si te gusta, el aviso «Aprobar y generar el video completo en esta calidad» autoriza continuar directamente con esa misma calidad. El primer completo se revisa y corrige en calidad alta; un borrador reducido se genera solo si lo eliges expresamente. El renderizador no verifica estas aprobaciones automáticamente.
 

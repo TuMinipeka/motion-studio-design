@@ -26,6 +26,8 @@ Las fases organizan las decisiones y el trabajo dentro de los cuatro pasos sigui
 
 ## Dos modos
 
+Si el usuario pide trabajo paralelo o la animación tiene módulos/planos independientes que lo justifiquen, aplica `references/paralelo.md`. En Claude Code, el agente principal coordina subagentes nativos en segundo plano con contratos de archivos y entregas; conserva las fases y autorizaciones de esta skill. El coordinador integra y administra la cola de render. Para piezas sencillas reduce el equipo; no añadas un sistema externo ni actives funciones experimentales por rutina.
+
 | Modo | Cuándo | Cómo |
 | --- | --- | --- |
 | **Animación** | El video se dibuja: motion graphics, explicativos, personajes, tipografía | Los pasos 0–4 de abajo (`window.seek(t)`, `render.mjs`) |

@@ -4,6 +4,14 @@ Las entradas describen cambios del repositorio, no versiones publicadas ni garan
 
 ## Sin versión publicada — 2026-11-06
 
+### Delegación nativa de Claude Code dentro de Motion Studio
+
+- **Problema:** el flujo no definía cómo repartir construcción y correcciones entre subagentes mientras avanzan los renders, ni protegía sus fuentes frente a ediciones concurrentes.
+- **Cambio:** `references/paralelo.md` dirige al coordinador y subagentes en segundo plano, con contexto explícito, un escritor por archivo, dependencias e interfaces acordadas, entregas verificadas y crítica independiente. El coordinador centraliza la GPU y fija las fuentes de cada render; el equipo avanza en trabajo que no las altere. Equipo proporcional, sin modelos impuestos ni activación automática de funciones experimentales.
+- **Uso:** enlace desde `SKILL.md` y `25d.md`, ficha adaptable `assets/paralelo/CONTRATO.md` y prompt breve en guía/README. Se conservan modos, motores, autorizaciones y controles existentes.
+- **Validación:** Claude Code 2.1.316 ejecutó una prueba de planificación de solo lectura con dos subagentes nativos en segundo plano (contrato/reparto y dependencias/render). Devolvió sus entregas y un plan que bloquea la producción sin aprobación, conserva la voz pendiente y fija las fuentes activas. Se comprobó además estructura de skill y enlaces. Evidencia local: `review/prueba-paralelo/`.
+- **Límites:** se comprobó delegación y planificación, sin renders ni edición concurrente de un video. La guía no bloquea escrituras por software; el coordinador debe asegurar fuentes fijas o una copia aislada. El ahorro frente a producción secuencial sigue sin medirse.
+
 ### Producción 2.5D con referencias, voz medida y recursos reanudables
 
 - **Problema:** faltaba un recorrido reutilizable para medir referencias, coordinar acción/voz/efectos y componer recursos 3D sin reescribir esas operaciones por proyecto. La caché de exportación podía reutilizar imagen de fuentes anteriores.
