@@ -4,6 +4,13 @@ Las entradas describen cambios del repositorio, no versiones publicadas ni garan
 
 ## Sin versión publicada — 2026-11-06
 
+### Catálogo de capacidades y estado de validación
+
+- **Necesidad:** el README distribuía las funciones entre varias secciones y no ofrecía una vista conjunta del flujo actual después de integrar 2.5D y delegación.
+- **Cambio:** catálogo enlazado de preproducción, animación, kit, 2.5D, audio, edición, subagentes, render y revisión; inventario ampliado de herramientas y contrato. Se distinguen capacidades disponibles, pruebas realizadas y límites pendientes.
+- **Validación:** contraste con la skill, referencias, herramientas y reportes existentes; comprobación de enlaces locales y `git diff --check`. No se ejecutaron nuevas pruebas audiovisuales para este cambio de documentación.
+- **Límites:** sin cambios de código o autorizaciones; la prueba de delegación acredita planificación, sin afirmar aceleración de producción ni bloqueo automático de archivos.
+
 ### Delegación nativa de Claude Code dentro de Motion Studio
 
 - **Problema:** el flujo no definía cómo repartir construcción y correcciones entre subagentes mientras avanzan los renders, ni protegía sus fuentes frente a ediciones concurrentes.

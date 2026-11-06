@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="#instala-motion-studio">Instalación</a> · <a href="#úsala">Uso</a> · <a href="#mira-un-resultado">Demo</a> · <a href="#cómo-funciona">Cómo funciona</a> · <a href="#requisitos">Requisitos</a>
+  <a href="#qué-puede-hacer-hoy">Capacidades</a> · <a href="#instala-motion-studio">Instalación</a> · <a href="#úsala">Uso</a> · <a href="#mira-un-resultado">Demo</a> · <a href="#cómo-funciona">Cómo funciona</a> · <a href="#requisitos">Requisitos</a>
 </p>
 
 # Motion Studio
@@ -21,6 +21,30 @@ Motion Studio es una **skill para agentes de IA**, independiente del proveedor, 
 El flujo usa Chrome sin interfaz con Playwright, la GPU que elijas y FFmpeg. No requiere un framework de video.
 
 Para **2.5D**, el mismo flujo puede medir referencias locales, usar la voz real como reloj, preparar planos/impactos/captions y componer recursos de Blender con caché limitada. Blender es opcional y genera PNG; Motion Studio conserva la composición y exportación. Consulta [el flujo 2.5D](motion-studio/references/25d.md) y [las pruebas del tutorial make-short](docs/analysis/2026-11-06-make-short-integrado.md). Las muestras de desarrollo no acreditan por sí solas calidad artística ni autorizan publicar.
+
+## Qué puede hacer hoy
+
+Estado documentado al **6 de noviembre de 2026**. Motion Studio reúne animación y edición de grabaciones en una sola skill. El agente dirige la producción; las herramientas ejecutan y comprueban las operaciones descritas.
+
+| Capacidad | Qué permite | Guía |
+| :--- | :--- | :--- |
+| Dirección y preproducción | Analizar referencias, definir identidad por proyecto y preparar brief y storyboard por plano con intención, cámara, luz, acción y sonido. | [Preproducción](motion-studio/references/preproduccion.md) · [Estilos](motion-studio/references/estilos.md) |
+| Animación y motion graphics | Crear composiciones HTML/Canvas/Three.js como función del tiempo; diseñar personajes, textos, diagramas y acciones para cada pieza. | [Skill](motion-studio/SKILL.md) · [Dirección de movimiento](motion-studio/references/direccion-movimiento.md) |
+| Cámara y acabado | Encuadres protegidos, paralaje, profundidad de campo, bokeh, luz motivada, lluvia, hojas, escritura, diálogo y transiciones. | [Kit de movimiento e imagen](motion-studio/references/kit.md) |
+| Producción 2.5D | Medir videos locales de referencia, coordinar planos e impactos y componer secuencias PNG de Blender con cadencia propia, generación parcial, reanudación y caché de memoria acotada. | [Flujo 2.5D](motion-studio/references/25d.md) |
+| Voz, música y sincronía | Importar marcas por palabra o usar ASR local opcional, generar SRT, consultar tiempos compartidos y mezclar voz, música y efectos a −14 LUFS. | [Flujo 2.5D](motion-studio/references/25d.md) · [Sonido](motion-studio/SKILL.md#sonido) |
+| Edición de grabaciones | Analizar cámara/pantalla, proponer cortes por silencios o palabras, trabajar tomas repetidas y muletillas, montar con layouts básicos y exportar con FFmpeg. | [Edición: operaciones y estado](motion-studio/references/edicion.md) |
+| Trabajo paralelo con Claude | Delegar tareas independientes a subagentes nativos en segundo plano, asignar un escritor por archivo, integrar entregas y avanzar trabajo mientras se renderizan fuentes fijas. | [Coordinación](motion-studio/references/paralelo.md) · [Contrato adaptable](motion-studio/assets/paralelo/CONTRATO.md) |
+| Exportación y recuperación | Usar la GPU elegida, renderizar por segmentos con huella de fuentes/configuración, reanudar imagen compatible y exportar H.264/yuv420p con conversión SDR BT.709 explícita. | [Contrato y comandos](#cómo-funciona) · [GPU](motion-studio/references/gpu.md) |
+| Revisión técnica y audiovisual | Auditar código, comparar instantes repetidos e inversos, generar hojas de contacto, medir ritmo y verificar formato, duración, fotogramas y audio; registrar la revisión con evidencia. | [Rúbricas](motion-studio/references/rubricas.md) |
+
+**Qué se ha probado.** El recorrido 2.5D produjo dos muestras reales de 6 segundos en 1080×1920 a 30 fps, verificadas como H.264/yuv420p/BT.709, con audio a −14,1 LUFS. También se comprobaron reproducción determinista en los instantes muestreados, regeneración parcial de recursos, reutilización e invalidación de caché y manejo de error del codificador. El [informe de integración](docs/analysis/2026-11-06-make-short-integrado.md) recoge las pruebas y sus límites. El modo edición tiene [pruebas con material sintético](tests/edicion/); no acredita cualquier grabación real.
+
+**Alcance de la delegación.** Se verificó planificación con dos subagentes reales de Claude Code en segundo plano. La coordinación se implementa mediante instrucciones y contrato; no hay bloqueo automático de archivos. El ahorro de tiempo de producción frente a una ejecución secuencial sigue sin medirse. Por defecto, el coordinador mantiene un solo trabajo pesado de GPU activo mientras los demás agentes avanzan tareas independientes.
+
+**Límites actuales.** Blender y ASR son opcionales y requieren herramientas adicionales; no hay reconstrucción automática de una escena desde un video ni rig universal. El SRT generado no se incrusta automáticamente. En edición siguen pendientes zooms animados, pantalla dividida/B-roll, overlays con alfa, subtítulos, música/SFX y color. La exportación SDR no incluye gestión HDR/ICC. La validación de render se concentra en Windows 11 con RTX 3050; las muestras 2.5D aún requieren revisión perceptiva continua y escucha. Las métricas no certifican acabado artístico.
+
+Las autorizaciones de brief, muestra y completo siguen vigentes en ambos modos. Delegar tareas o superar una comprobación técnica no autoriza una fase de producción adicional ni publicar el resultado.
 
 ## Mira un resultado
 
@@ -265,13 +289,18 @@ Las herramientas compartidas viven en `~/.motion-studio`; puedes cambiar la ruta
 | [`motion-studio/SKILL.md`](motion-studio/SKILL.md) | Instrucciones independientes del agente. |
 | [`motion-studio/scripts/nuevo.py`](motion-studio/scripts/nuevo.py) | Generador de proyectos y detección de GPU. |
 | [`motion-studio/scripts/preparar.py`](motion-studio/scripts/preparar.py) | Instalación y verificación de las herramientas (Playwright, Chromium, fuentes, numpy, Pillow, FFmpeg, GPU). |
+| [`motion-studio/scripts/referencia.py`](motion-studio/scripts/referencia.py) | Análisis de referencias locales con procedencia declarada, huella, metadatos y hojas temporizadas. |
+| [`motion-studio/scripts/recursos25d.py`](motion-studio/scripts/recursos25d.py) | Generación opcional de PNG con Blender, comprobación de GPU, caché y regeneración parcial. |
+| [`motion-studio/references/25d.md`](motion-studio/references/25d.md) | Producción 2.5D: referencias, voz medida, planos, recursos, sincronía y comprobaciones. |
+| [`motion-studio/references/paralelo.md`](motion-studio/references/paralelo.md) | Delegación nativa de Claude, propiedad de archivos, dependencias, integración y cola de render. |
+| [`motion-studio/assets/paralelo/CONTRATO.md`](motion-studio/assets/paralelo/CONTRATO.md) | Ficha adaptable para coordinar entregas, interfaces y autorizaciones del proyecto. |
 | [`motion-studio/assets/plantilla/`](motion-studio/assets/plantilla/) | Composición base, renderizador y herramientas de revisión. |
 | [`motion-studio/assets/plantilla/kit/`](motion-studio/assets/plantilla/kit/) | Kit de movimiento y técnicas de imagen. Incluye:<ul><li>cámara: encuadres, sobre el hombro, respiración, temblor y paralaje;</li><li>transiciones, incluidos los párpados, y montaje que se acelera;</li><li>profundidad de campo con bokeh;</li><li>luz motivada;</li><li>lluvia, hojas y polvo;</li><li>escritura a mano;</li><li>diálogo en escena y citas.</li></ul>Trae dos ejemplos completos (`ejemplo.html` y `tecnicas.html`). |
 | [`motion-studio/assets/edicion/`](motion-studio/assets/edicion/) | Modo edición de videos grabados: análisis, corte en papel, línea de tiempo, render con FFmpeg y control de calidad. |
 | [`motion-studio/references/edicion.md`](motion-studio/references/edicion.md) | Flujo del modo edición, operaciones de la línea de tiempo, comprobaciones y qué está pendiente. |
 | [`tests/edicion/`](tests/edicion/) | Material sintético con respuestas conocidas y prueba de principio a fin del modo edición, más la regresión del modo animación. |
 | [`motion-studio/references/kit.md`](motion-studio/references/kit.md) | Guía del kit. Explica:<ul><li>principios de animación y timing;</li><li>cómo diseñar y animar personajes;</li><li>gramática de planos y transiciones;</li><li>profundidad de campo, luz, partículas, escritura y textos en escena.</li></ul> |
-| [`tests/animacion/`](tests/animacion/) | Pruebas de las funciones puras del kit: encuadres, puntos 3D y técnicas. |
+| [`tests/animacion/`](tests/animacion/) | Pruebas del kit, sincronía, secuencias y caché; regresiones de exportación SDR y generación opcional con Blender. |
 | [`motion-studio/references/gpu.md`](motion-studio/references/gpu.md) | Configuración y diagnóstico de GPU. |
 | [`motion-studio/references/rubricas.md`](motion-studio/references/rubricas.md) | Rúbricas del 1 al 10 por funcionalidad: criterios medibles, errores frecuentes, detección, corrección y comprobación automática. |
 | [`motion-studio/references/requisitos.md`](motion-studio/references/requisitos.md) | Requisitos por funcionalidad: sistemas, hardware, versiones, instalación, verificación, limitaciones y alternativas. |
