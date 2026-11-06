@@ -5,9 +5,15 @@
 <style>html, body { margin: 0; background: #0B0D10; } canvas { display: block; }</style>
 <canvas id="c"></canvas>
 <script src="lib.js"></script>
-<!-- kit: cámara con encuadres y transiciones entre planos. Ver references/kit.md y kit/ejemplo.html -->
+<!-- kit: cámara, transiciones, profundidad de campo, luz, partículas, escritura y textos.
+     Ver references/kit.md, kit/ejemplo.html y kit/tecnicas.html. Quita los que no uses. -->
 <script src="kit/camara.js"></script>
 <script src="kit/transiciones.js"></script>
+<script src="kit/profundidad.js"></script>
+<script src="kit/luz.js"></script>
+<script src="kit/particulas.js"></script>
+<script src="kit/escritura.js"></script>
+<script src="kit/textos.js"></script>
 <script>
 // PLANTILLA: reemplaza render(t) por el video real. Contrato (lo exige render.mjs):
 //   · window.seek(t) dibuja el fotograma del instante t, sin leer nada que no sea t.

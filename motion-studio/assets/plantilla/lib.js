@@ -17,6 +17,11 @@ const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 const lerp = (a, b, k) => a + (b - a) * k;
 // progreso 0..1 de t dentro de [t0, t1]
 const prog = (t, t0, t1) => clamp((t - t0) / (t1 - t0));
+// '#RRGGBB' → 'rgba(r,g,b,a)': un color de la paleta con transparencia (luces, niebla, bokeh, placas de texto)
+function colorAlfa(hex, a = 1) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${clamp(a)})`;
+}
 const easeOutCubic = k => 1 - Math.pow(1 - k, 3);
 const easeInOutCubic = k => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
 
@@ -105,10 +110,11 @@ function crearTexto(ctx) {
     s = { c, w, pad }; memo.set(key, s); return s;
   }
   const medir = (txt, font, op = {}) => sprite(txt, font, op.color || '#000', op.borde, op.sombra, op.colorBorde).w;
+  // op.ctx dibuja en otro contexto (p. ej. el lienzo de un plano dentro de una transición) con la misma caché
   function texto(txt, font, color, x, y, op = {}) {
     const s = sprite(txt, font, color, op.borde, op.sombra, op.colorBorde);
     const dx = op.align === 'left' ? 0 : op.align === 'right' ? s.w : s.w / 2;
-    ctx.drawImage(s.c, x - s.pad - dx, y - s.c.height / 2);
+    (op.ctx || ctx).drawImage(s.c, x - s.pad - dx, y - s.c.height / 2);
     return s.w;
   }
   function numero(txt, font, color, x, y, op = {}) {

@@ -1,4 +1,4 @@
-# Kit de movimiento: curvas, cámara y transiciones
+# Kit de movimiento: curvas, cámara, transiciones y técnicas de imagen
 
 El proyecto trae en `kit/` y `lib.js` piezas para el movimiento, la cámara y el montaje, que son iguales en cualquier estilo. Lo que se ve (personajes, objetos, escenarios) se diseña para cada pieza. El kit ofrece recursos; un plano fijo o un corte directo son válidos cuando sirven al relato.
 
@@ -10,7 +10,18 @@ node render.mjs --pagina=kit/ejemplo.html --frames=1.2,3.6,6.5
 
 Consúltalo si necesitas un ejemplo de estructura: planos como funciones, montaje con transiciones, principios de animación con `claves()` y `resorte()` (una pelota con anticipación, aplastamiento y rebote) y cámara calculada desde el sujeto.
 
-Carga, en este orden: `lib.js`, `kit/camara.js` y `kit/transiciones.js`. La plantilla `index.html` ya los incluye.
+Carga, en este orden: `lib.js`, `kit/camara.js` y `kit/transiciones.js`, y los módulos de técnicas que use la pieza: `kit/profundidad.js`, `kit/luz.js`, `kit/particulas.js`, `kit/escritura.js` y `kit/textos.js`. La plantilla `index.html` ya los incluye todos; quita los que no uses.
+
+`kit/tecnicas.html` muestra esas técnicas funcionando, unos 12,5 s en 16:9:
+- diálogo sobre el hombro con cambio de foco y bokeh;
+- párpados;
+- calendario con X que se aceleran y «1 MIN» escrito a mano;
+- calle de noche con farola y lluvia;
+- cita línea a línea.
+
+```bash
+node render.mjs --pagina=kit/tecnicas.html --frames=1.0,3.5,6.1,8.5,11.4
+```
 
 ## Movimiento: `lib.js`
 
@@ -85,6 +96,18 @@ const revision = comprobarPuntos3D(cam, [
 
 Solo comprueba esos puntos, su profundidad y márgenes: no el volumen entero, oclusiones, textos del HUD ni legibilidad. El margen es del cuadro completo, no una zona segura de plataforma. Para una explicación espacial, aplica también `references/estilos.md`.
 
+**Diálogo, respiración y anclas.**
+- **Diálogo.** `encuadreHombro(hablante, W, H, lado)` pone a quien habla en un tercio y deja el otro tercio para el hombro de quien escucha. Ese hombro va en primer término, grande, oscuro y desenfocado (ver «Profundidad de campo»). Usa `−lado` en el contraplano, para no cruzar el eje.
+- **Respiración.** `respira(cam, t, t0, t1, 0.015, [x, y])` acerca la cámara un 1–2 % durante un plano fijo hacia un punto que no se mueve en pantalla. Mantiene viva una conversación o una pausa sin que se note.
+- **Anclas.** `proyectar(cam, [x, y], W, H)` convierte un punto del mundo en un punto del cuadro. Sirve para anclar algo que se dibuja fuera de la cámara, como un bocadillo junto a la cabeza.
+
+```js
+const cam = respira(encuadreHombro(vendedora, W, H, 1), t, plano.inicio, plano.fin, 0.02, cabeza);
+const [hx, hy] = proyectar(cam, cabeza, W, H);   // ahí va el bocadillo
+```
+
+Ninguna de estas piezas arregla un tramo que `ritmo.py` marca como muerto: la respiración es casi imperceptible a propósito. Si falta acción, vuelve a la puesta en escena.
+
 **Gramática de planos:**
 - **`general`** ubica la escena.
 - **`medio`**, para acciones con las manos.
@@ -114,12 +137,74 @@ tr.montaje(ctx, t, [ { fin: 2.6, plano: plano1, salida: { tipo: 'whip', dur: 0.3
 | `zoomAtraves` | Entrar en una idea |
 | `flash` | Golpe musical |
 | `forma` (match cut) | Pasar de una forma a otra parecida: `op.forma(ctx, k)` traza el contorno |
+| `parpados` (1,2–2 s) | Punto de vista del personaje: cierra sobre A, negro, abre sobre B desenfocado que se enfoca (despertar, «al día siguiente»). `parpadeos: 2` hace un primer intento a medias |
 
-Un buen enlace conserva algo entre los planos: posición, forma, dirección del movimiento o color.
+Un buen enlace conserva algo entre los planos: posición, forma, dirección del movimiento o color. El corte seco es la norma; reserva las transiciones con efecto para cambios de tiempo, de lugar o de punto de vista.
+
+**Montaje que se acelera.** `aceleracion(inicio, n, d0, d1)` devuelve `n` intervalos `{i, inicio, fin}` cuya duración pasa de `d0` a `d1`. Sirve para comprimir una rutina que se repite: la misma función de plano con un dato distinto en cada repetición (el día, la excusa, los km). Que cada repetición cambie algo; si son idénticas, solo es relleno.
+
+```js
+const dias = aceleracion(35.4, 18, 1.4, 0.5);    // de 1,4 s a 0,5 s por plano
+const lista = dias.map(d => ({ fin: d.fin, plano: (c, t) => alarma(c, t, d.i) }));
+```
+
+## Profundidad de campo: `kit/profundidad.js`
+
+Separa primer término, sujeto y fondo, y guía la mirada como una lente. Cada capa se pinta en su lienzo y se desenfoca según su distancia al plano de foco. Para cambiar el foco de plano (*rack focus*), anima `foco` con `claves()`.
+
+```js
+const pf = crearProfundidad(W, H, 4);               // al cargar: un lienzo por capa
+pf.componer(ctx, t, [
+  { z: 7, dibujar: fondo },                          // z = distancia a cámara (unidades de la escena)
+  { z: 3, dibujar: sujeto },
+  { z: 0.9, dibujar: hombroDelQueEscucha },
+], { foco: claves(t, [[0, 3], [1.8, 3], [2.5, 0.9, 'suave']]), apertura: 9, max: 22,
+     niebla: { color: '#0B1020', densidad: 0.05 } });
+bokehSembrado(c, t, zona, 9, ['#FFB45C', '#9FC3FF']); // luces desenfocadas del fondo (o bokeh([...]) a mano)
+```
+
+- **Desenfoque.** `apertura · |z − foco| / max(z, foco)` px, con tope `max`. Lo cercano se desenfoca más por unidad que lo lejano. `nitida: true` excluye una capa.
+- **Niebla.** Funde cada capa con el color del aire según su distancia.
+- **Costo.** Un lienzo y un desenfoque por capa. Usa 2–4 capas por plano y agrupa lo que está a la misma distancia.
+
+## Luz motivada: `kit/luz.js`
+
+`halo` (fuente visible), `haz` (cono volumétrico con polvo sembrado), `charco` (la luz en el suelo), `nieblaHorizonte`, `vineta` y `tramado` (contra los escalones de los degradados oscuros, al final del fotograma). Una luz tiene que estar justificada por la escena y tocar algo: el suelo, al personaje, la lluvia. Un halo suelto parece una pegatina.
+
+## Partículas: `kit/particulas.js`
+
+`lluvia`, `salpicaduras`, `hojas` y `polvo`. Cada partícula es una función cerrada de (semilla, índice, t): no hay simulación, así que cualquier fotograma se renderiza suelto.
+- **Lluvia.** Con `luz: (x, y) => 0–1`, las gotas brillan dentro del cono de una farola, como en la vida real.
+- **Uso.** Cuentan algo: la adversidad, el paso de las estaciones, el silencio de un cuarto. No las uses para tapar un tramo quieto.
+
+## Escritura a mano: `kit/escritura.js`
+
+La decisión del personaje se ve suceder: el trazo aparece mientras la punta avanza.
+
+```js
+const x = marcaX(cx, cy, 64, semilla);                        // también marcaCheck, circuloAMano, subrayado
+const punta = escribir(ctx, x, prog(t, t0, t0 + 0.35), { color: '#D93A3A', ancho: 9 });
+dibujarRotulador(punta);                                       // {x, y, angulo, tocando}
+
+const esc = crearEscritura(W, H), tx = crearTexto(esc.ctx);   // al cargar
+const p = esc.revelar(ctx, prog(t, 5.8, 6.6), { x, y, ancho, alto, letras: 4 }, c => tx.texto('1 MIN', fuente, rojo, cx, cy));
+```
+
+- **Trazados.** `crearTrazado(trazos, salto)` sirve para cualquier forma; `salto` es el tiempo que la punta viaja por el aire entre trazos.
+- **Texto.** `revelar()` descubre el texto de izquierda a derecha y devuelve una punta que sube y baja una vez por letra. No traza cada letra: para eso, pasa a `escribir()` los trazos de una fuente de un solo trazo (Hershey, de dominio público).
+- **Ritmo de referencia:** ~0,25–0,4 s por letra y ~0,35 s por X.
+
+## Textos en escena: `kit/textos.js`
+
+- **Bocadillo.** `bocadillo(c, t, {texto, inicio, fin}, {x, y, lado, font})` ancla el diálogo junto a la cabeza que habla, sobre una placa difusa, con una entrada corta. Usa color para separar voces: blanco para lo que dice, acento para lo que piensa.
+- **Cita.** `cita(c, t, {lineas, autor, inicio, fin}, {x, y, font, escalonado})` hace entrar cada línea con un fundido y una subida corta, y funde todo al final.
+- **Tiempo de lectura.** `lecturaMinima(texto)` calcula ~3 palabras/s + 0,6 s. Es el mínimo; súmale la pausa que pida la escena.
+- **Contexto.** Todas reciben el contexto donde dibujar, también el lienzo de un plano dentro de una transición. `crearTexto` acepta `op.ctx` con el mismo fin.
 
 ## Determinismo
 
 - El kit no guarda estado entre fotogramas.
-- `crearTransiciones` crea sus lienzos una vez y los limpia (`reset()`) cada vez que los usa.
+- `crearTransiciones`, `crearProfundidad` y `crearEscritura` crean sus lienzos una vez y los limpian (`reset()`) cada vez que los usan.
+- Partículas, marcas y bokeh sembrado dependen solo de su semilla, su índice y t.
 
 Si añades piezas propias, sigue las mismas reglas: crea lienzos y cachés al cargar, nunca dentro de `render(t)`, y comprueba con `node render.mjs --determinismo` incluyendo instantes en mitad de cada transición.

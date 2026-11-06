@@ -2,6 +2,61 @@
 
 Las entradas describen cambios del repositorio, no versiones publicadas ni garantías de calidad audiovisual.
 
+## Sin versión publicada — 2026-11-05
+
+### Revisión de DANZO: lectura del gag, cadencia y salida SDR
+
+- **Problema observado:** en una comedia 2.5D por capas, el acercamiento de cámara coincidía con el crecimiento del pelo y recortaba la reacción. El montaje entregaba 24 fps a partir de 12 dibujos/s y saltaba la ruta de exportación de la skill. Faltaban etiquetas de color; la conversión del renderizador también era implícita.
+- **Dirección:** `estilos.md` y la guía de movimiento protegen el cambio principal con cámara, poses extremas, recorte y grafismo revisados juntos. Distinguen cadencia de dibujos de fps de entrega y generador de recursos de reproductor. Se conservan el motor, las autorizaciones, los personajes y las técnicas pendientes de otros trabajos.
+- **Render:** muestra, borrador y final fijan matriz YUV BT.709, rango limitado y propiedades/etiquetas SDR. La caché de segmentos lleva el sufijo `-bt709-tv`; los segmentos anteriores se conservan sin reutilizarlos como si tuvieran la conversión nueva. No se añade gestión HDR/ICC.
+- **Prueba real:** muestra aislada de C07–C09, 2,75 s/66 fotogramas, 720p24 y RTX 3050. Solo se regenera el plano crítico con cámara estable y rótulo despejado; los adyacentes reutilizan sus capas. La cabeza permanece dentro del margen del 5 % en los 10 dibujos de C08 y la reacción resulta más legible en las imágenes. La mezcla se conserva; correlación interior de audio 0,999994.
+- **Validación:** `tests/animacion/color_sdr.py` exporta una carta real por los tres modos y comprueba matriz/rango, etiquetas, RGB y fotogramas (error máximo observado 1/255). El reproductor pasa cuatro instantes deterministas. Sintaxis, auditoría (11 archivos sin errores/avisos), validador y regresiones de encuadre/kit correctos.
+- **Límites:** las poses del generador corregido coinciden al repetir tres instantes en orden inverso, pero una imagen conserva 3 píxeles con diferencia de un nivel; no se declara exactitud total de Blender. Claridad local 5 → 8/10 provisional, sin acreditar 9/10 global, fluidez o calidad sonora artística. Faltan escucha, carrera y contacto pelo/lámpara; no hay benchmark de rendimiento ni exportación completa. Los 53 scripts de origen conservan sus huellas.
+- [Análisis por estilo, comparación y límites](docs/analysis/2026-11-05-danzo-review.md).
+
+## Sin versión publicada — 2026-11-04
+
+### Técnicas de imagen de un corto de referencia (fase 1)
+
+- **Problema observado:** al estudiar un corto animado de referencia, se vio que su acabado cinematográfico depende de recursos que el kit no ofrecía:
+  - profundidad de campo;
+  - plano sobre el hombro;
+  - acercamientos casi imperceptibles;
+  - transición de párpados;
+  - escritura a mano sincronizada;
+  - diálogo dentro de la escena;
+  - citas línea a línea;
+  - luz nocturna;
+  - lluvia y hojas;
+  - guion de color medido.
+
+  Cada proyecto los reescribía a mano o no los usaba.
+- **Cambio:**
+  - **Módulos nuevos del kit:**
+    - `profundidad.js`: capas por distancia con desenfoque relativo al foco, niebla, `bokeh()` y `bokehSembrado()`;
+    - `luz.js`: `halo`, `haz`, `charco`, `nieblaHorizonte`, `vineta` y `tramado`;
+    - `particulas.js`: `lluvia` con luz por zona, `salpicaduras`, `hojas` y `polvo`;
+    - `escritura.js`: `crearTrazado`, `escribir` con la punta, marcas a mano y `crearEscritura().revelar()`;
+    - `textos.js`: `bocadillo`, `cita` y `lecturaMinima`.
+  - **En `camara.js`:** `encuadreHombro()`, `respira()` y `proyectar()`.
+  - **En `transiciones.js`:** el tipo `parpados` y `aceleracion()` para montajes que se aceleran.
+  - **En `lib.js`:** `colorAlfa()`, y `crearTexto` acepta `op.ctx` para dibujar en el lienzo de un plano.
+  - **En `ritmo.py`:** mide saturación y luminancia por tramo y avisa, sin fallar, si se declara `curva.color`.
+  - **Plantilla:** `index.html` carga los módulos y `kit/tecnicas.html` los muestra funcionando.
+  - **Documentación:** se actualizan `kit.md`, `SKILL.md` y el README. Ninguna pieza se presenta como arreglo de un tramo muerto: siguen las reglas de ritmo existentes.
+- **Validación real:**
+  - **Auditoría y render:** en una copia aislada de la plantilla, `auditar.mjs` dio 0 errores y 0 avisos. `kit/tecnicas.html` se renderizó con la RTX 3050 y se revisaron 10 fotogramas. Eso destapó dos defectos, ya corregidos: la máscara de `revelar()` borraba todo y el bocadillo no seguía a la cámara, de ahí `proyectar()`.
+  - **Determinismo:** `--determinismo` dio 13 instantes idénticos, repetidos y en orden inverso. Los instantes incluyen mitad de los párpados, cambio de foco, X en aceleración, escritura, lluvia y cita.
+  - **Pruebas nuevas:** `tests/animacion/kit-tecnicas.test.mjs` hace 18 comprobaciones: `proyectar`, `respira` con punto fijo, `encuadreHombro`, `aceleracion` contigua y monótona, largo de trazados y semillas, `lecturaMinima`, y lluvia y hojas con las mismas llamadas de dibujo en cualquier orden de t.
+  - **`ritmo.py`:** con un video de 33,6 s mostró las columnas de saturación y luminancia. Avisó solo del tramo de color planeado que se salía.
+- **Límites:**
+  - `revelar()` no traza letra por letra; para eso hacen falta datos de una fuente de un solo trazo.
+  - Las transiciones y la profundidad de campo cuestan un lienzo por capa; no se midió el tiempo de render frente al kit anterior.
+  - `tests/animacion/puntos-3d.test.mjs` no se pudo ejecutar en este equipo porque falta el paquete `three`. No cambió.
+  - No se acredita una mejora de calidad de ningún video: son recursos, no resultados.
+  - Siguen pendientes la fase 2 (rig silueta, escala por profundidad, interfaces, poses cenitales) y la fase 3 (exteriores 3D con Three.js).
+- [Análisis de la referencia, tabla de técnicas y plan por fases](docs/analysis/2026-11-04-referencia-1-minute.md).
+
 ## Sin versión publicada — 2026-11-03
 
 ### Revisión de nevera_redes.mp4: divulgación 3D y visibilidad del mecanismo

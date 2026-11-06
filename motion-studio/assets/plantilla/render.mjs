@@ -45,6 +45,10 @@ function cargarConfig() {
 }
 const cfg = cargarConfig();
 const { ancho: W, alto: H, fps: FPS, duracion: DUR } = cfg.video;
+// Capturas RGB del navegador -> YUV SDR con matriz/rango definidos y etiquetas coherentes.
+// No es una conversión de HDR ni un sistema de gestión de perfiles ICC.
+const COLOR_SDR = ['-vf', 'scale=out_color_matrix=bt709:out_range=tv,setparams=range=limited:color_primaries=bt709:color_trc=bt709:colorspace=bt709',
+  '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv'];
 
 // Validar el intervalo antes de abrir navegadores. Es una prueba corta, no una exportación completa.
 const prueba = arg('prueba');
@@ -173,7 +177,7 @@ try {
       const ff = spawn('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'image2pipe', '-c:v', 'png',
         '-framerate', String(FPS), '-i', '-', '-an',
         '-c:v', 'libx264', '-preset', cfg.codificacion.final.preset, '-crf', String(cfg.codificacion.final.crf),
-        '-pix_fmt', 'yuv420p', '-t', String(segundos), '-movflags', '+faststart', videoParcial], { stdio: ['pipe', 'inherit', 'inherit'] });
+        ...COLOR_SDR, '-pix_fmt', 'yuv420p', '-t', String(segundos), '-movflags', '+faststart', videoParcial], { stdio: ['pipe', 'inherit', 'inherit'] });
       const terminado = new Promise((resolve, reject) => {
         ff.once('error', reject);
         ff.once('close', code => code === 0 ? resolve() : reject(new Error(`FFmpeg fallo en la prueba (${code})`)));
@@ -276,7 +280,7 @@ try {
       const modo = arg('borrador') ? 'borrador' : 'final', enc = cfg.codificacion[modo];
       // segmentos de 5 s: si se interrumpe, al relanzar solo rehace los que faltan (cada modo tiene los suyos)
       const n = FPS * DUR, SEG = FPS * 5;
-      const tmp = path.join(root, 'review', 'segments-' + modo); fs.mkdirSync(tmp, { recursive: true });
+      const tmp = path.join(root, 'review', 'segments-' + modo + '-bt709-tv'); fs.mkdirSync(tmp, { recursive: true });
       const nSeg = Math.ceil(n / SEG), segPath = k => path.join(tmp, `s${String(k).padStart(3, '0')}.mp4`);
       const okSeg = k => {
         if (!fs.existsSync(segPath(k))) return false;
@@ -291,7 +295,7 @@ try {
         while (next < todo.length) {
           const k = todo[next++], a = k * SEG, b = Math.min(n, a + SEG), part = segPath(k) + '.part.mp4';
           const ff = spawn('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'image2pipe', '-c:v', 'png', '-framerate', String(FPS), '-i', '-',
-            '-c:v', 'libx264', '-preset', enc.preset, '-crf', String(enc.crf), '-pix_fmt', 'yuv420p', '-r', String(FPS), part], { stdio: ['pipe', 'inherit', 'inherit'] });
+            '-c:v', 'libx264', '-preset', enc.preset, '-crf', String(enc.crf), ...COLOR_SDR, '-pix_fmt', 'yuv420p', '-r', String(FPS), part], { stdio: ['pipe', 'inherit', 'inherit'] });
           for (let i = a; i < b; i++) {
             const buf = await foto(page, i / FPS, undefined, 'png');
             if (!ff.stdin.write(buf)) await new Promise(r => ff.stdin.once('drain', r));

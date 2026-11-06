@@ -17,8 +17,12 @@
 //   zoomAtraves  el plano A se acerca hasta atravesarse y B llega desde lejos (cambio de escala, energía)
 //   flash        destello en el punto medio, para golpes de música
 //   forma        corte por forma (match cut): op.forma(ctx, k) traza el contorno por donde aparece B y crece con k
+//   parpados     punto de vista del personaje: los párpados se cierran sobre A, negro, y se abren sobre B desenfocado
+//                que se enfoca (despertar, «al día siguiente»). op.parpadeos = 1 o 2 (abre a medias, cierra y abre del
+//                todo); op.desenfoque = px de blur inicial de B (por defecto el 1,2 % del alto)
 //
-// Duraciones de referencia: corte 0; whip 0.25–0.4 s; empuje y barrido 0.4–0.6 s; iris 0.5–0.8 s; zoomAtraves 0.4–0.6 s.
+// Duraciones de referencia: corte 0; whip 0.25–0.4 s; empuje y barrido 0.4–0.6 s; iris 0.5–0.8 s; zoomAtraves 0.4–0.6 s;
+// parpados 1.2–2 s.
 
 function crearTransiciones(W, H) {
   const lienzo = () => { const c = document.createElement('canvas'); c.width = W; c.height = H; return c; };
@@ -71,6 +75,30 @@ function crearTransiciones(W, H) {
     } else if (tipo === 'forma') {
       ctx.drawImage(pintar(A, planoA, t), 0, 0);
       op.forma(ctx, ease.sale(k)); ctx.clip(); ctx.drawImage(pintar(B, planoB, t), 0, 0);
+    } else if (tipo === 'parpados') {
+      // apertura 1 = ojo abierto (cuadro entero), 0 = cerrado. Cierra sobre A (0–25 %), negro (25–35 %), abre sobre B.
+      const dos = (op.parpadeos || 1) >= 2, desenf = op.desenfoque ?? H * 0.012;
+      let a, img = null, blur = 0;
+      if (k < 0.25) { a = 1 - ease.entra(k / 0.25); img = pintar(A, planoA, t); }
+      else if (k < 0.35) a = 0;
+      else {
+        const u = (k - 0.35) / 0.65;
+        a = dos ? (u < 0.3 ? 0.35 * ease.sale(u / 0.3) : u < 0.45 ? 0.35 * (1 - ease.suave((u - 0.3) / 0.15)) : ease.suave((u - 0.45) / 0.55))
+                : ease.suave(u);
+        img = pintar(B, planoB, t); blur = desenf * (1 - ease.sale(u));
+      }
+      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+      if (img && a > 0.001) {
+        ctx.save(); if (blur >= 0.5) ctx.filter = `blur(${blur.toFixed(2)}px)`; ctx.drawImage(img, 0, 0); ctx.restore();
+        // párpados: bordes curvos (más abiertos en el centro), con el borde suavizado
+        const cy = H / 2, hc = a * H * 0.85, he = a * H * 0.55;   // a = 1: los párpados salen del cuadro también en los bordes
+        ctx.save(); ctx.fillStyle = '#000'; ctx.filter = `blur(${Math.round(H * 0.012)}px)`;
+        ctx.beginPath(); ctx.moveTo(-20, -20); ctx.lineTo(W + 20, -20); ctx.lineTo(W + 20, cy - he);
+        ctx.quadraticCurveTo(W / 2, cy - 2 * hc + he, -20, cy - he); ctx.closePath(); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(-20, H + 20); ctx.lineTo(W + 20, H + 20); ctx.lineTo(W + 20, cy + he);
+        ctx.quadraticCurveTo(W / 2, cy + 2 * hc - he, -20, cy + he); ctx.closePath(); ctx.fill();
+        ctx.restore();
+      }
     } else throw new Error(`transición desconocida: ${tipo}`);
     ctx.restore();
   }
@@ -86,4 +114,16 @@ function crearTransiciones(W, H) {
   }
 
   return { dibujar, montaje };
+}
+
+// Montaje que se acelera (o se frena): n planos desde `inicio`, cuya duración pasa de d0 a d1 de forma geométrica.
+// Devuelve [{i, inicio, fin}] para construir la lista de montaje o los eventos. Comprime tiempo (rutinas, días que se
+// repiten) y transmite urgencia; d1 > d0 lo frena hacia un momento clave.
+//   const cortes = aceleracion(35.4, 18, 1.4, 0.5);   // de 1,4 s a 0,5 s por plano
+function aceleracion(inicio, n, d0, d1) {
+  if (!(n >= 1) || !(d0 > 0) || !(d1 > 0)) throw new Error('aceleracion: n ≥ 1 y duraciones positivas');
+  const r = n > 1 ? Math.pow(d1 / d0, 1 / (n - 1)) : 1, out = [];
+  let t = inicio;
+  for (let i = 0; i < n; i++) { const d = d0 * Math.pow(r, i); out.push({ i, inicio: +t.toFixed(4), fin: +(t + d).toFixed(4) }); t += d; }
+  return out;
 }

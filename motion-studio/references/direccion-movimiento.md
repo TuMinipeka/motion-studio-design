@@ -46,6 +46,8 @@ En un plano oscuro, decide qué detalle tiene que leerse y revisa ese foco a tam
 
 Para personajes, concreta intención, silueta y poses de preparación, acción y reacción. Revisa mirada, peso, equilibrio, contacto con el suelo y con objetos; una mano debe alcanzar lo que toca y el entorno debe responder cuando corresponda. La expresión puede verse en postura y ritmo, además del rostro. No resuelvas una actuación cambiando solo la posición de un icono rígido.
 
+Protege la lectura del cambio principal durante su ejecución: si el pelo crece mientras la cámara se acerca, una referencia estable puede distinguir ambos cambios. Revisa cara, manos y elemento que cambia con el recorte final y el grafismo. Para actuación estilizada y secuencias prerenderizadas, aplica `estilos.md` sin imponer otra cadencia o motor.
+
 Para elementos gráficos, aplica el mismo criterio a sus estados: qué cambia, qué lo provoca y cómo se percibe peso o jerarquía. No añadas caras ni articulaciones por obligación.
 
 ### Transiciones, montaje e impacto

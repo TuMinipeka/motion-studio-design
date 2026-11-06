@@ -19,6 +19,9 @@ Las pausas declaradas en motion.config.json -> "curva" -> "pausas" no cuentan co
 Avisa (sin fallar) si la duración media de plano es larga, si un re-gancho planificado en "curva" -> "reganches" no se
 ve en el video, si hay demasiado tiempo entre re-ganchos y, cuando el video tiene sonido, si la densidad de golpes
 sonoros o el nivel caen respecto a la apertura o si el estéreo es estrecho y no cambia.
+Mide también la saturación y la luminancia por tramo (el guion de color real). Si el proyecto declara un guion de color
+en motion.config.json -> "curva" -> "color" = [[t0, t1, satMin, satMax, "motivo"], ...] (saturación en %), avisa de los
+tramos que se salen; no falla por color.
 Necesita numpy y ffmpeg.
 """
 import argparse
@@ -85,6 +88,21 @@ def medir_audio(ruta):
     flujo = np.maximum(0, np.diff(np.log(e + 1e-9)))
     golpe = (flujo > 2.0) & np.r_[True, flujo[:-1] <= 2.0]
     return {"x": x, "sr": sr, "golpes": (np.nonzero(golpe)[0] + 1) * hop / sr}
+
+
+def medir_color(ruta):
+    """Saturación (0–100 %) y luminancia (0–255) medias cada 0,5 s: el guion de color medido, no supuesto."""
+    p = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "csv=p=0", ruta],
+                       capture_output=True, text=True)
+    w, h = map(int, p.stdout.strip().split(",")[:2])
+    alto = max(2, int(round(ANCHO * h / w / 2) * 2))
+    r = subprocess.run(["ffmpeg", "-v", "error", "-i", ruta, "-vf", f"fps=2,scale={ANCHO}:{alto}", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
+                       capture_output=True)
+    f = np.frombuffer(r.stdout, np.uint8).reshape(-1, alto, ANCHO, 3).astype(np.float32)
+    mx, mn = f.max(axis=3), f.min(axis=3)
+    sat = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1e-6), 0).mean(axis=(1, 2)) * 100
+    lum = (f[..., 0] * 0.299 + f[..., 1] * 0.587 + f[..., 2] * 0.114).mean(axis=(1, 2))
+    return {"t": np.arange(len(f)) / 2.0, "sat": sat, "lum": lum}
 
 
 def tramos_de(n, tramo):
@@ -191,14 +209,21 @@ def main():
             print(f"  {i:4d}s {marcas[i:i + 60]}")
 
         tramo, filas = curva(m, u, pz, audio)
+        color = medir_color(ruta)
+        for f in filas:
+            sel = (color["t"] >= f["a"]) & (color["t"] < f["b"])
+            f["sat"] = float(color["sat"][sel].mean()) if sel.any() else 0.0
+            f["lum"] = float(color["lum"][sel].mean()) if sel.any() else 0.0
         base = filas[0]
         print(f"\ncurva de energía por tramos de {tramo} s (la apertura es la referencia):")
-        print(f"  {'tramo':>9} {'mov':>6} {'vs ap.':>7} {'quieto':>7}" + (f" {'golpes/s':>9} {'dB':>6} {'ancho':>6}" if audio else ""))
+        print(f"  {'tramo':>9} {'mov':>6} {'vs ap.':>7} {'quieto':>7}" + (f" {'golpes/s':>9} {'dB':>6} {'ancho':>6}" if audio else "")
+              + f" {'sat':>5} {'lum':>5}")
         for f in filas:
             rel = f["mov"] / base["mov"] if base["mov"] > 0 else 1.0
             linea = f"  {f['a']:4d}-{f['b']:<4d} {f['mov']:6.2f} {rel:6.0%} {f['quieto']:6.0f}%"
             if audio:
                 linea += f" {f['golpes']:9.2f} {f['db']:6.1f} {f['ancho']:6.2f}"
+            linea += f" {f['sat']:4.0f}% {f['lum']:5.0f}"
             print(linea + ("  pausa declarada" if f["pausa"] else ""))
 
         problemas, avisos = [], []
@@ -235,6 +260,16 @@ def main():
             huecos = [(x, y) for x, y in zip(puntos, puntos[1:]) if y - x > maximo and not en_pausa(x, y, pz)]
             if reganches and huecos:
                 avisos.append(f"más de {maximo} s sin re-gancho: " + ", ".join(f"{x:g}–{y:g} s" for x, y in huecos))
+            # guion de color declarado: [[t0, t1, satMin, satMax, motivo?], ...] en %. Solo avisa: el color es una decisión.
+            for tramo_color in plan.get("color", []):
+                if len(tramo_color) < 4:
+                    continue
+                c0, c1, smin, smax = (float(v) for v in tramo_color[:4])
+                sel = (color["t"] >= c0) & (color["t"] < c1)
+                if sel.any():
+                    s = float(color["sat"][sel].mean())
+                    if not smin <= s <= smax:
+                        avisos.append(f"guion de color {c0:g}–{c1:g} s: saturación media {s:.0f} %, fuera de lo planeado ({smin:g}–{smax:g} %)")
         if audio:
             flojos = [f for f in filas[1:] if not f["pausa"] and base["golpes"] > 0 and f["golpes"] < 0.6 * base["golpes"]]
             if flojos:

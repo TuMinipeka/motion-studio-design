@@ -34,6 +34,23 @@ function encuadre(nombre, sujeto, H = 1920, foco = null) {
   return { x: foco ? foco[0] : x, y: foco ? foco[1] : y - alto * e.centro, zoom: H / (alto * e.visible), rot: 0 };
 }
 
+// Sobre el hombro (diálogo): el que habla queda en el tercio opuesto al hombro del que escucha, que se dibuja grande
+// en primer término (más oscuro y desenfocado: kit/profundidad.js). lado = 1 pone al que habla en el tercio derecho.
+// W, H = cuadro de salida. Mantén el mismo `lado` en el plano y el contraplano invertido (−lado) para no cruzar el eje.
+function encuadreHombro(hablante, W, H, lado = 1, nombre = 'medioCorto') {
+  const cam = encuadre(nombre, hablante, H);
+  return { ...cam, x: cam.x - lado * (W / 6) / cam.zoom };
+}
+
+// Respiración de cámara: un acercamiento lento y casi imperceptible durante un plano fijo (1–2 % en 2–3 s mantiene
+// vivo un diálogo o una pausa sin que se note el movimiento). Devuelve la cámara ajustada; `hacia` = [x, y] del mundo
+// al que se acerca (por defecto, el centro actual). cantidad < 0 = se aleja.
+function respira(cam, t, t0, t1, cantidad = 0.015, hacia = null) {
+  const k = prog(t, t0, t1), z = 1 + cantidad * k;
+  const [hx, hy] = hacia || [cam.x, cam.y];
+  return { ...cam, zoom: cam.zoom * z, x: lerp(cam.x, hx, 1 - 1 / z), y: lerp(cam.y, hy, 1 - 1 / z) };
+}
+
 // Encuadra una zona del mundo (rostro, manos, texto, objeto) conservando sus cuatro bordes.
 // La zona debe incluir el recorrido de la acción, no solo su pose inicial. Cámara fija, sin rotación.
 // margen es una fracción de cada lado del cuadro; no depende de un estilo o tipo de sujeto.
@@ -78,6 +95,13 @@ function temblor(t, impulsos, semilla = 1) {
 // Cámara en mano: deriva lenta y continua (documental, tensión). amp en px.
 function camaraEnMano(t, amp = 8, semilla = 3) {
   return { dx: amp * ruidoSuave(semilla, t, 0.7), dy: amp * 0.7 * ruidoSuave(semilla + 1, t, 0.6), rot: 0.002 * ruidoSuave(semilla + 2, t, 0.5) };
+}
+
+// Punto del mundo → punto del cuadro con esta cámara (sin temblor). Sirve para anclar al mundo lo que se dibuja fuera
+// de la cámara: un bocadillo junto a la cabeza, una etiqueta, un brillo de interfaz.
+function proyectar(cam, [x, y], W, H) {
+  const c = Math.cos(cam.rot || 0), s = Math.sin(cam.rot || 0), dx = (x - cam.x) * cam.zoom, dy = (y - cam.y) * cam.zoom;
+  return [W / 2 + dx * c - dy * s, H / 2 + dx * s + dy * c];
 }
 
 // Hace ctx.save() y coloca la cámara; termina con ctx.restore() después de dibujar el mundo.

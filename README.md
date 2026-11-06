@@ -202,6 +202,8 @@ La [revisión de un Short de divulgación 3D](docs/analysis/2026-11-03-nevera-re
 
 La muestra codifica primero la imagen y une después la mezcla copiando el video, sin una segunda compresión. Para un gesto o detalle difícil de leer, el kit ofrece `encuadreZona()`; revisa también la densidad de las capas rasterizadas al acercarte.
 
+Las codificaciones SDR fijan matriz BT.709, rango limitado y etiquetas de color en muestras y completos. Los segmentos usan la caché `segments-<modo>-bt709-tv`: los segmentos anteriores se conservan, pero no se reutilizan para acreditar esta conversión. La [revisión de una comedia por capas](docs/analysis/2026-11-05-danzo-review.md) distingue cadencia, lectura del gag y determinismo del generador y del reproductor.
+
 El render trabaja en segmentos de 5 segundos y permite reanudar los que faltan tras una interrupción. Comprueba el MP4 final con FFprobe antes de entregarlo.
 
 </details>
@@ -256,11 +258,12 @@ Las herramientas compartidas viven en `~/.motion-studio`; puedes cambiar la ruta
 | [`motion-studio/scripts/nuevo.py`](motion-studio/scripts/nuevo.py) | Generador de proyectos y detección de GPU. |
 | [`motion-studio/scripts/preparar.py`](motion-studio/scripts/preparar.py) | Instalación y verificación de las herramientas (Playwright, Chromium, fuentes, numpy, Pillow, FFmpeg, GPU). |
 | [`motion-studio/assets/plantilla/`](motion-studio/assets/plantilla/) | Composición base, renderizador y herramientas de revisión. |
-| [`motion-studio/assets/plantilla/kit/`](motion-studio/assets/plantilla/kit/) | Kit de movimiento: cámara con encuadres, temblor y paralaje, transiciones entre planos y un ejemplo completo. |
+| [`motion-studio/assets/plantilla/kit/`](motion-studio/assets/plantilla/kit/) | Kit de movimiento y técnicas de imagen. Incluye:<ul><li>cámara: encuadres, sobre el hombro, respiración, temblor y paralaje;</li><li>transiciones, incluidos los párpados, y montaje que se acelera;</li><li>profundidad de campo con bokeh;</li><li>luz motivada;</li><li>lluvia, hojas y polvo;</li><li>escritura a mano;</li><li>diálogo en escena y citas.</li></ul>Trae dos ejemplos completos (`ejemplo.html` y `tecnicas.html`). |
 | [`motion-studio/assets/edicion/`](motion-studio/assets/edicion/) | Modo edición de videos grabados: análisis, corte en papel, línea de tiempo, render con FFmpeg y control de calidad. |
 | [`motion-studio/references/edicion.md`](motion-studio/references/edicion.md) | Flujo del modo edición, operaciones de la línea de tiempo, comprobaciones y qué está pendiente. |
 | [`tests/edicion/`](tests/edicion/) | Material sintético con respuestas conocidas y prueba de principio a fin del modo edición, más la regresión del modo animación. |
-| [`motion-studio/references/kit.md`](motion-studio/references/kit.md) | Guía del kit: principios de animación y timing, cómo diseñar y animar personajes, gramática de planos y transiciones. |
+| [`motion-studio/references/kit.md`](motion-studio/references/kit.md) | Guía del kit. Explica:<ul><li>principios de animación y timing;</li><li>cómo diseñar y animar personajes;</li><li>gramática de planos y transiciones;</li><li>profundidad de campo, luz, partículas, escritura y textos en escena.</li></ul> |
+| [`tests/animacion/`](tests/animacion/) | Pruebas de las funciones puras del kit: encuadres, puntos 3D y técnicas. |
 | [`motion-studio/references/gpu.md`](motion-studio/references/gpu.md) | Configuración y diagnóstico de GPU. |
 | [`motion-studio/references/rubricas.md`](motion-studio/references/rubricas.md) | Rúbricas del 1 al 10 por funcionalidad: criterios medibles, errores frecuentes, detección, corrección y comprobación automática. |
 | [`motion-studio/references/requisitos.md`](motion-studio/references/requisitos.md) | Requisitos por funcionalidad: sistemas, hardware, versiones, instalación, verificación, limitaciones y alternativas. |

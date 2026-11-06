@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<title>Motion Studio · técnicas del kit</title>
+<style>html, body { margin: 0; background: #000; } canvas { display: block; }</style>
+<canvas id="c"></canvas>
+<script src="../lib.js"></script>
+<script src="camara.js"></script>
+<script src="transiciones.js"></script>
+<script src="profundidad.js"></script>
+<script src="luz.js"></script>
+<script src="particulas.js"></script>
+<script src="escritura.js"></script>
+<script src="textos.js"></script>
+<script>
+// Muestra de las técnicas del kit (16:9, unos 12,5 s; el mundo se dibuja en 1920×1080 y se escala al cuadro).
+// Es un catálogo funcionando, no un estilo que copiar:
+//   0,0–2,6  diálogo sobre el hombro: profundidad de campo con cambio de foco, bokeh, respiración de cámara, bocadillo
+//   2,6–4,2  transición de párpados (despertar) con doble parpadeo
+//   4,2–7,0  calendario: X que se aceleran (aceleracion), «1 MIN» que se escribe con la punta, chulo final
+//   7,0–10,0 calle de noche: farola (halo, haz, charco), lluvia que brilla en el cono, salpicaduras, niebla, viñeta
+//  10,0–12,5 cita que entra línea a línea
+// Renderízalo con:  node render.mjs --pagina=kit/tecnicas.html --frames=1.0,2.2,3.0,3.9,5.5,6.6,8.5,11.4
+(async () => {
+  const cfg = await (await fetch('/motion.config.json')).json();
+  const W = cfg.video.ancho, H = cfg.video.alto;
+  const cv = document.getElementById('c'); cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  for (const [n, u] of [['Interfaz', 'inter/files/inter-latin-700-normal.woff2'], ['Serifa', 'dm-serif-display/files/dm-serif-display-latin-400-normal.woff2'],
+                        ['Marcador', 'permanent-marker/files/permanent-marker-latin-400-normal.woff2']]) {
+    const f = new FontFace(n, `url(/node_modules/@fontsource/${u})`); await f.load(); document.fonts.add(f);
+  }
+  await document.fonts.ready;
+  // mundo de 1920×1080 centrado en el cuadro
+  const S = Math.min(W / 1920, H / 1080), OX = (W - 1920 * S) / 2, OY = (H - 1080 * S) / 2;
+  const mundo = c => c.setTransform(S, 0, 0, S, OX, OY);
+  const tr = crearTransiciones(W, H), pf = crearProfundidad(W, H, 4), esc = crearEscritura(W, H);
+  const tx = crearTextos(ctx), txEsc = crearTexto(esc.ctx);
+  const ACENTO = '#FFC23D', ROJO = '#D93A3A', CALIDO = '#FFB45C';
+
+  // silueta: cuerpo negro con ojos blancos (la emoción vive en párpados y cejas)
+  function silueta(c, x, pies, alto, op = {}) {
+    const { mira = 0, parpado = 0, color = '#0A0A0C', ojos = true } = op, r = alto * 0.17, cy = pies - alto + r;
+    c.fillStyle = color;
+    c.beginPath(); c.roundRect(x - alto * 0.2, cy + r * 0.8, alto * 0.4, alto * 0.62, alto * 0.12); c.fill();
+    c.beginPath(); c.arc(x, cy, r, 0, Math.PI * 2); c.fill();
+    if (!ojos) return;
+    for (const l of [-1, 1]) {
+      const ex = x + l * r * 0.38 + mira * r * 0.15, ey = cy - r * 0.05;
+      c.fillStyle = '#F4F1EA'; c.beginPath(); c.ellipse(ex, ey, r * 0.17, r * 0.22 * (1 - parpado), 0, 0, Math.PI * 2); c.fill();
+      c.strokeStyle = '#F4F1EA'; c.lineWidth = r * 0.06; c.lineCap = 'round';
+      c.beginPath(); c.moveTo(ex - r * 0.2, ey - r * 0.36 + l * r * 0.04); c.lineTo(ex + r * 0.2, ey - r * 0.36 - l * r * 0.04); c.stroke();
+    }
+  }
+
+  // ── plano 1: diálogo sobre el hombro ────────────────────────────────────────────────────────────────
+  const vendedora = { x: 1150, y: 860, alto: 520 };
+  function plano1(c, t) {
+    c.reset(); c.fillStyle = '#C9CED6'; c.fillRect(0, 0, W, H);
+    const cam0 = encuadreHombro(vendedora, 1920, 1080, 1, 'conjunto');
+    const cam = respira(cam0, t, 0, 2.6, 0.02, [vendedora.x, vendedora.y - 400]);
+    const capaCam = (x, z) => { x.setTransform(S, 0, 0, S, OX, OY); aplicarCamara(x, { ...cam, zoom: cam.zoom * (z < 2 ? 1.06 : 1) }, 1920, 1080); };
+    pf.componer(c, t, [
+      { z: 7, dibujar: x => {   // estantería con cajas y luces
+        capaCam(x, 7); x.fillStyle = '#E6E9EE'; x.fillRect(-400, -200, 2800, 1400);
+        for (let i = 0; i < 9; i++) for (let j = 0; j < 4; j++) { x.fillStyle = srand(3, i * 4 + j) > 0.6 ? '#7FA7C9' : '#B9C1CC'; x.fillRect(560 + i * 130, 260 + j * 110, 100, 70); }
+        bokehSembrado(x, t, { x: 520, y: 120, ancho: 1200, alto: 80 }, 7, ['#FFFFFF', '#FFE6B0'], { semilla: 4, rMin: 18, rMax: 34 });
+        x.restore(); } },
+      { z: 3, dibujar: x => {   // mostrador y la vendedora
+        capaCam(x, 3); x.fillStyle = '#9AA3AE'; x.fillRect(500, 760, 1300, 240);
+        silueta(x, vendedora.x, vendedora.y, vendedora.alto, { mira: -1, parpado: t > 1.4 && t < 1.55 ? 0.9 : 0 });
+        x.restore(); } },
+      { z: 0.9, dibujar: x => {  // hombro del que escucha, enorme en primer término
+        capaCam(x, 0.9); silueta(x, 430, 1350, 1250, { ojos: false }); x.restore(); } },
+    ], { foco: claves(t, [[0, 3], [1.8, 3], [2.5, 0.9, 'suave']]), apertura: 9, max: 22 });
+    // el bocadillo va fuera de la cámara, anclado a la cabeza con proyectar()
+    const [hx, hy] = proyectar(cam, [vendedora.x + vendedora.alto * 0.12, vendedora.y - vendedora.alto * 0.95], 1920, 1080);
+    mundo(c);
+    tx.bocadillo(c, t, { texto: 'Empieza por un minuto.', inicio: 0.35, fin: 2.5 }, { x: hx, y: hy, lado: 1, font: '700 40px Interfaz' });
+    c.setTransform(1, 0, 0, 1, 0, 0);
+  }
+
+  // ── plano 2: calendario en la nevera ────────────────────────────────────────────────────────────────
+  const CELDAS = Array.from({ length: 14 }, (_, i) => ({ x: 620 + (i % 7) * 100, y: 330 + Math.floor(i / 7) * 110 }));
+  const XS = aceleracion(4.3, 10, 0.24, 0.08).map((e, i) => ({ ...e, trazo: marcaX(CELDAS[i].x + 45, CELDAS[i].y + 45, 64, 10 + i) }));
+  const CHULO = marcaCheck(1190, 790, 90, 3);
+  function plano2(c, t) {
+    c.reset(); mundo(c);
+    c.fillStyle = '#B8BEC6'; c.fillRect(0, 0, 1920, 1080);
+    c.fillStyle = '#E9ECEF'; c.fillRect(560, 120, 820, 900);             // nevera
+    c.fillStyle = '#FAFAF7'; c.fillRect(600, 230, 740, 360);              // hoja
+    tx.texto('10K CADA DÍA', '700 46px Interfaz', '#3A4250', 970, 280, { ctx: c });
+    for (const q of CELDAS) { c.fillStyle = '#7FA7C9'; c.fillRect(q.x, q.y, 90, 90); }
+    let punta = null;
+    for (const e of XS) { const p = escribir(c, e.trazo, prog(t, e.inicio, e.fin), { color: ROJO, ancho: 9 }); if (t >= e.inicio && t < e.fin) punta = p; }
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    const p = esc.revelar(c, prog(t, 5.85, 6.55), { x: 700 * S + OX, y: 620 * S + OY, ancho: 520 * S, alto: 170 * S, letras: 4 },
+      x => { mundo(x); txEsc.texto('1 MIN', '160px Marcador', ROJO, 960, 710); });
+    if (t >= 5.85 && t < 6.55) punta = { x: (p.x - OX) / S, y: (p.y - OY) / S };
+    mundo(c);
+    const pc = escribir(c, CHULO, prog(t, 6.6, 6.9), { color: '#2E9D58', ancho: 12 });
+    if (t >= 6.6 && t < 6.9) punta = pc;
+    if (punta) {   // rotulador: sigue la punta
+      c.save(); c.translate(punta.x, punta.y); c.rotate(-0.6);
+      c.fillStyle = '#111'; c.fillRect(-6, -150, 34, 150); c.fillStyle = ROJO; c.fillRect(-2, -10, 26, 14); c.restore();
+    }
+    c.setTransform(1, 0, 0, 1, 0, 0);
+  }
+
+  // ── plano 3: calle de noche con lluvia ──────────────────────────────────────────────────────────────
+  const FAROLA = { x: 1240, y: 250 }, CONO = [[1205, 262], [1275, 262], [1560, 960], [920, 960]];
+  const enCono = (x, y) => {   // 0–1: dentro del cono de la farola (en coordenadas del mundo)
+    if (y < FAROLA.y || y > 960) return 0;
+    const k = (y - FAROLA.y) / (960 - FAROLA.y), media = lerp(35, 320, k);
+    return clamp(1 - Math.abs(x - FAROLA.x - k * 0) / media) * (1 - k * 0.4);
+  };
+  function plano3(c, t) {
+    c.reset(); mundo(c);
+    const g = c.createLinearGradient(0, 0, 0, 1080); g.addColorStop(0, '#0A0F1C'); g.addColorStop(1, '#141B2B');
+    c.fillStyle = g; c.fillRect(0, 0, 1920, 1080);
+    for (let i = 0; i < 6; i++) {        // casas lejanas con ventanas cálidas
+      const x = 60 + i * 320, h = 200 + 60 * srand(8, i); c.fillStyle = '#10151F'; c.fillRect(x, 620 - h, 250, h);
+      if (srand(9, i) > 0.35) { c.fillStyle = colorAlfa(CALIDO, 0.75); c.fillRect(x + 90, 640 - h * 0.7, 46, 40); }
+    }
+    bokehSembrado(c, t, { x: 0, y: 380, ancho: 1920, alto: 160 }, 9, [CALIDO, '#9FC3FF'], { semilla: 21, rMin: 10, rMax: 26 });
+    nieblaHorizonte(c, 1920, 610, 120, '#3A4766', 0.35);
+    c.fillStyle = '#1A2130'; c.fillRect(0, 620, 1920, 460);                 // acera y calle
+    charco(c, FAROLA.x, 960, 360, 70, CALIDO, 0.75);
+    haz(c, CONO, FAROLA.x, FAROLA.y, FAROLA.x, 960, CALIDO, 0.55, t, 3, 50);
+    c.fillStyle = '#0B0E14'; c.fillRect(FAROLA.x - 9, FAROLA.y, 18, 720); c.fillRect(FAROLA.x - 40, FAROLA.y - 14, 80, 16);
+    halo(c, FAROLA.x, FAROLA.y + 6, 220, CALIDO, 0.95);
+    // corredor que se acerca (escala por profundidad)
+    const z = lerp(9, 3.2, ease.suave(prog(t, 7, 10))), alto = 1500 / z, pies = 620 + 1300 / z;
+    silueta(c, lerp(980, 1100, prog(t, 7, 10)) + 8 * Math.sin(t * 14), pies, alto, { mira: 0.3 });
+    lluvia(c, t, { W: 1920, H: 1080, n: 260, vel: 1900, angulo: 0.12, luz: enCono, semilla: 12 });
+    salpicaduras(c, t, { W: 1920, ySuelo: 900, n: 50, luz: enCono });
+    vineta(c, 1920, 1080, 0.6);
+    c.setTransform(1, 0, 0, 1, 0, 0);
+  }
+
+  // ── plano 4: cita ───────────────────────────────────────────────────────────────────────────────────
+  function plano4(c, t) {
+    c.reset(); c.fillStyle = '#000'; c.fillRect(0, 0, W, H); mundo(c);
+    tx.cita(c, t, { lineas: ['Lo pequeño, repetido,', 'se vuelve grande.'], autor: '— Motion Studio', inicio: 10.1, fin: 12.5 },
+      { x: 960, y: 540, font: '400 76px Serifa', fontAutor: '400 36px Serifa', escalonado: 0.7 });
+    c.setTransform(1, 0, 0, 1, 0, 0);
+  }
+
+  function render(t) {
+    ctx.reset();
+    tr.montaje(ctx, t, [
+      { fin: 2.6, plano: plano1, salida: { tipo: 'parpados', dur: 1.6, parpadeos: 2 } },
+      { fin: 7.0, plano: plano2 },
+      { fin: 10.0, plano: plano3 },
+      { fin: 99, plano: plano4 },
+    ]);
+    tramado(ctx, W, H);
+  }
+  window.seek = t => render(t);
+  window.seek(0);
+  window.ready = true;
+})().catch(e => { window.loadError = String(e && e.stack || e); });
+</script>

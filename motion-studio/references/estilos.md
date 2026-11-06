@@ -29,3 +29,11 @@ La muestra debe incluir el mecanismo difícil y su interfaz, no solo la reacció
 ## Evidencia por estilo
 
 Registra en `REVISION.md` el estilo evaluado y el criterio aplicado. Compara con el mismo proyecto y referencia; no penalices un plano narrativo quieto por no tener el ritmo de un Short educativo, ni conviertas este último en un corto oscuro para parecer cinematográfico. Puntúa solo lo observado; geometría correcta y determinismo no demuestran fluidez, comprensión o retención.
+
+## Actuación estilizada y recursos por fotogramas
+
+En comedia de personajes, el gag debe poder leerse: preparación → cambio → reacción. Declara en la ficha qué partes tienen que permanecer visibles (por ejemplo, pelo que crece, cara y manos). Revisa esa región en las poses extremas y con **todas** las cámaras, recortes y gráficos aplicados. Un detalle parcial puede ser intencional; no pierdas la única evidencia de la acción. Si una ampliación oculta el cambio o se confunde con él, conserva una referencia estable durante el momento clave. Más cortes por minuto no demuestran mejor actuación.
+
+Si el proyecto ya trae secuencias prerenderizadas autorizadas, conserva su lenguaje y distingue la cadencia de dibujos de los fps de entrega. Doce dibujos repetidos en 24 fps pueden ser una elección; una cámara rápida muestreada también a 12 puede saltar. Corrige ese plano ralentizando o replanteando la cámara, o aumentando solo su muestreo cuando haga falta; no dupliques todo el render por rutina. Esta guía no añade otro motor: los recursos del proyecto se componen con el contrato de la skill.
+
+Comprueba la generación de los recursos además de su reproducción: mismo instante, repetido y en orden inverso. Una semilla inicial no basta si el ruido se consume por llamada; la respiración debe depender de tiempo/identidad. Calcula envolventes de voz desde datos temporales o precalcúlalas una vez, sin arrastrar el valor del fotograma anterior durante el render. Restablece las transformaciones del rig antes de aplicar la pose completa. Un reproductor determinista de PNG no demuestra que el generador lo sea; registra diferencias residuales sin ocultarlas con una tolerancia inventada.
