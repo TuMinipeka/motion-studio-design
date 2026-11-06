@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "planos": [
+    {"id": "P01", "inicio": 0, "fin": 45, "muestras": [18], "impactos": []},
+    {"id": "P02", "inicio": 45, "fin": 100, "muestras": [57, 63, 66, 75], "impactos": [{"id": "golpe", "fotograma": 63, "efecto": "impacto", "ganancia": 0.8}]},
+    {"id": "P03", "inicio": 100, "fin": 180, "muestras": [120], "impactos": [{"id": "reaccion", "fotograma": 101, "efecto": "tic", "ganancia": 0.25}]}
+  ]
+}

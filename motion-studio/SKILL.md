@@ -43,6 +43,8 @@ En el modo edición, los puntos de control son tres:
 2. la muestra;
 3. el primer completo.
 
+Para personajes gráficos en un espacio 3D, secuencias prerenderizadas o sincronía por palabra/impacto, consulta `references/25d.md`. Es parte del modo animación: referencias con procedencia y hojas temporizadas, `produccion.py` para datos de planos/voz, recursos opcionales de Blender y reproducción bajo demanda con `kit/secuencia.js`. La exportación y las autorizaciones siguen siendo las de esta skill; no se instala otro sistema.
+
 Algunas partes del modo edición están pendientes: subtítulos, B-roll, gráficos con transparencia, música, color y
 zooms animados. Si el usuario las pide, díselo antes de empezar (lista en `references/edicion.md` → "Estado").
 
@@ -57,7 +59,7 @@ Esta skill trabaja con herramientas concretas y el resultado depende de usarlas 
 - `verificar.py` para comprobar la exportación antes de entregarla.
 - Las fuentes instaladas para la tipografía.
 
-Qué necesita cada una (sistemas, hardware, versiones, comandos de verificación y alternativas si falta algo) está en `references/requisitos.md`. Si el usuario pide algo que la skill no hace todavía (subtítulos desde una voz, capas con transparencia), díselo antes de empezar: consulta la sección de funcionalidades no disponibles. Para editar grabaciones reales, sigue `references/edicion.md` y sus límites actuales.
+Qué necesita cada una (sistemas, hardware, versiones, comandos de verificación y alternativas si falta algo) está en `references/requisitos.md`. Para marcas por palabra y SRT desde voz en animación, consulta `references/25d.md`; no se incrustan automáticamente. Si pide algo pendiente, como exportación de video con alfa o captions integrados en el modo edición, díselo antes de empezar. Para editar grabaciones reales, sigue `references/edicion.md` y sus límites actuales.
 
 Al empezar cualquier video, comprueba que están listas. Desde la carpeta de esta skill:
 
@@ -110,6 +112,8 @@ Qué contiene el proyecto:
 | `lib.js` | `mulberry32`, `srand`, catálogo `ease`, `claves()` (pose a pose), `resorte()`, `mezclar()`, `ruidoSuave()`, `colorAlfa()` y `crearTexto(ctx)` (texto determinista). |
 | `kit/` | Cámara con encuadres, sobre el hombro, respiración, proyección, temblor y paralaje (`camara.js`); transiciones (incluidos los párpados), montaje y montaje que se acelera (`transiciones.js`); profundidad de campo con bokeh y niebla (`profundidad.js`); luz motivada, viñeta y tramado (`luz.js`); lluvia, hojas y polvo (`particulas.js`); escritura a mano y marcas (`escritura.js`); diálogo junto al personaje y citas (`textos.js`). Ejemplos: `ejemplo.html` y `tecnicas.html`. Guía en `references/kit.md`. No incluye personajes: se diseñan para cada pieza. |
 | `render.mjs` | `--frames`, `--prueba=inicio,fin` (máximo 10 s, mezcla de `audio/final.wav` si existe; `--sin-audio` para una prueba muda), `--sheet`, `--determinismo`, `--ritmo`, `--borrador`, `--final`. Lee `motion.config.json`. |
+| `cache.mjs` | Huella de fuentes/configuración para reanudar exportaciones completas sin reutilizar segmentos de una versión anterior. Se copia junto a `render.mjs`. |
+| `produccion.py` | Opcional: valida datos ejecutables de planos e impactos; importa marcas de voz, genera `sincro.json`/SRT y captura muestras con hojas por plano. `kit/sincro.js` consulta esos datos desde `t`. Guía: `references/25d.md`. |
 | `auditar.mjs` | Auditor estático del contrato: busca `setTimeout`, `requestAnimationFrame`, `Math.random`, transiciones CSS, relojes reales, `fillText` directo y contextos 2D sin `ctx.reset()`. Ignora los scripts auxiliares `_*.mjs`. |
 | `motion.config.json` | Resolución, fps, duración, GPU, calidad de codificación y salida. |
 | `beats.json` | Cuadrícula de pulsos de la música; la escribe `audio/musica.py`. |
@@ -224,7 +228,7 @@ node render.mjs --final      # primer completo con la calidad aprobada -> export
 ```
 
 - Al arrancar imprime el renderizador WebGL real. Comprueba que sea la GPU esperada; si avisa de SwiftShader o de otra GPU, detente y arréglalo (`references/gpu.md`) en vez de esperar un render lento.
-- Renderiza por segmentos de 5 s: si se interrumpe, al relanzar solo rehace los que faltan.
+- Renderiza por segmentos de 5 s: si se interrumpe, al relanzar solo rehace los que faltan para la misma huella de fuentes/configuración. Los cambios crean otra caché sin borrar la anterior; los recursos externos no declarados no están cubiertos (límites en `references/25d.md`).
 - Verifica el archivo final con `python verificar.py` antes de entregarlo.
   - **Falla (código 1)** si el códec no es H.264, los píxeles no son `yuv420p`, la resolución, los fps, la duración o el número de fotogramas no coinciden con `motion.config.json`, los fps son variables, falta el audio o no está a −14 ±1 LUFS, audio y video duran distinto, o hay negro de 1 s o más sin declarar.
   - **Avisa** del color sin etiquetas BT.709, del pico por encima de −1 dBTP y de la imagen congelada 4 s o más.

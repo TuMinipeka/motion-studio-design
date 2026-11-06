@@ -2,6 +2,19 @@
 
 Las entradas describen cambios del repositorio, no versiones publicadas ni garantías de calidad audiovisual.
 
+## Sin versión publicada — 2026-11-06
+
+### Producción 2.5D con referencias, voz medida y recursos reanudables
+
+- **Problema:** faltaba un recorrido reutilizable para medir referencias, coordinar acción/voz/efectos y componer recursos 3D sin reescribir esas operaciones por proyecto. La caché de exportación podía reutilizar imagen de fuentes anteriores.
+- **Integración:** `references/25d.md`, `scripts/referencia.py`, `produccion.py`, `kit/sincro.js` y `kit/secuencia.js`; procedencia/huellas/hojas, tiempos reales por palabra, validación de planos e impactos, SRT y lectura de PNG por tiempo con ImageBitmap acotados. Blender sigue siendo un generador opcional de recursos; el exportador es `render.mjs`.
+- **Recursos:** `recursos25d.py` exige GPU real, valida PNG, conserva el alcance al regenerar `--solo`, separa informes de los manifiestos estables y compara repeticiones mediante Pillow. Se eliminan fecha/coste variables de los metadatos PNG. El ejemplo original de seis segundos demuestra el recorrido sin imponer personajes o estilo a otros proyectos.
+- **Render/audio:** huella de fuentes/configuración/página/perfil para reanudación; la mezcla se vuelve a unir sin rehacer imagen. Manejo de salida temprana/error de FFmpeg durante el envío. `musica.py --sincro` coloca efectos por fotograma y normaliza a −14 LUFS con margen de pico; el modo musical clásico se conserva.
+- **Pruebas reales:** tres referencias conseguidas y medidas; Claude «2D CANAL» generó 180 PNG nativos de Blender. Se exportaron dos muestras de 6 s/180 f en 1080×1920/30, H.264/yuv420p/BT.709, −14,1 LUFS y −1,3 dBTP. El ejemplo integrado generó 72 dibujos a 12/s y repitió tres instantes sin diferencias. Cuatro instantes por reproductor idénticos en repetición y orden inverso. Reanudación de imagen: 2/2 segmentos reutilizados en 3,43 s totales.
+- **Regresiones:** seis casos de plan/voz y tres pruebas JS nuevas; exportación real con invalidación/reutilización y encoder inválido; adaptador real con rango parcial, metadatos estables y rechazo de GPU/tamaño. Encuadre, kit y carta SDR de muestra/borrador/final pasan; sintaxis, auditoría y validador correctos. Copia de Claude actualizada con respaldo y 52 archivos comprobados por contenido.
+- **Límites:** pruebas cortas, sin escucha subjetiva ni reproducción continua perceptiva; no se acredita el nivel artístico de las referencias ni producción larga. El generador upstream conserva defectos observados y no pasó una prueba de orden inverso. ASR requiere revisión; SRT no se incrusta automáticamente; no se usaron voz de pago ni publicación. Se mantienen capacidades, estructura y autorizaciones existentes.
+- [Investigación, pruebas, rutas y pendientes](docs/analysis/2026-11-06-make-short-integrado.md).
+
 ## Sin versión publicada — 2026-11-05
 
 ### Revisión de DANZO: lectura del gag, cadencia y salida SDR

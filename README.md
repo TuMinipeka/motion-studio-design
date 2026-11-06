@@ -20,6 +20,8 @@ Motion Studio es una **skill para agentes de IA**, independiente del proveedor, 
 
 El flujo usa Chrome sin interfaz con Playwright, la GPU que elijas y FFmpeg. No requiere un framework de video.
 
+Para **2.5D**, el mismo flujo puede medir referencias locales, usar la voz real como reloj, preparar planos/impactos/captions y componer recursos de Blender con caché limitada. Blender es opcional y genera PNG; Motion Studio conserva la composición y exportación. Consulta [el flujo 2.5D](motion-studio/references/25d.md) y [las pruebas del tutorial make-short](docs/analysis/2026-11-06-make-short-integrado.md). Las muestras de desarrollo no acreditan por sí solas calidad artística ni autorizan publicar.
+
 ## Mira un resultado
 
 [![Vista previa animada de XEON: identidad visual, conversación, existencias y cálculo de una cotización. Haz clic para abrir el video completo.](docs/assets/xeon-preview.gif)](ejemplo/XEON_motion_ejemplo.mp4)

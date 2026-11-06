@@ -96,7 +96,7 @@ python scripts/preparar.py --comprobar   # código 0 si todo está listo; escrib
 | **Dependencias** | Python con numpy; FFmpeg con ebur128 (y con un decodificador para el formato de la pista del usuario, como MP3 o AAC) |
 | **Comandos** | `python audio/musica.py` · `--pista tema.mp3 [--bpm N]` · `--voz voz.wav` |
 | **Verificación** | La consola informa de los LUFS y de la verificación de pulsos; `verificar.py` sobre el video final |
-| **Limitaciones** | Síntesis sencilla, sin limitador de true peak ni paneo automático. No genera voz: la narración la aporta el usuario o una herramienta de texto a voz de su entorno. |
+| **Limitaciones** | Síntesis sencilla, sin paneo automático. Con `--sincro`, normaliza en dos pasadas a −14 LUFS y −1,5 dBTP antes de AAC; comprueba el MP4 con `verificar.py`. El modo clásico conserva su normalización anterior. No genera voz: la narración la aporta el usuario o una herramienta de texto a voz de su entorno. |
 | **Alternativas** | Pista del usuario con `--pista`; sin audio, texto en pantalla como narración. |
 
 ### 6. Revisión: hoja de contacto, ritmo y determinismo (`sheet.py`, `ritmo.py`, `auditar.mjs`)
@@ -117,7 +117,7 @@ python scripts/preparar.py --comprobar   # código 0 si todo está listo; escrib
 | **Dependencias** | FFmpeg y FFprobe con libx264 y ebur128 |
 | **Comandos** | `node render.mjs --final` → `python verificar.py` (o `python verificar.py ruta.mp4`) |
 | **Salida** | H.264 High, `yuv420p`, AAC a 320 kbps (si hay audio), CRF 12 `slow` por defecto |
-| **Limitaciones** | Sin etiquetas de color BT.709 ni limitador de pico: `verificar.py` lo avisa. Sin perfiles por plataforma: la orientación y la duración se fijan en el brief. |
+| **Limitaciones** | Salida SDR BT.709/rango limitado; no convierte HDR ni perfiles ICC. El codificador no limita picos de una mezcla externa: `verificar.py` los avisa. Sin perfiles por plataforma: la orientación y la duración se fijan en el brief. |
 | **Alternativas** | Para reproductores antiguos, mantener `yuv420p` y H.264, que ya son los valores por defecto. |
 
 ### 8. Funcionalidades no disponibles
@@ -126,9 +126,9 @@ python scripts/preparar.py --comprobar   # código 0 si todo está listo; escrib
 |---|---|---|
 | B-roll, pantalla dividida y zooms animados en el modo edición | Pendiente (fase 4) | Nuevas operaciones de `montaje.py` y layouts en `editar.py` |
 | Música, efectos, limpieza de voz y color en el modo edición | Pendiente (fase 4) | Cadena de audio y color en `editar.py` |
-| Subtítulos generados desde una voz | Pendiente (fase 4); las marcas por palabra ya existen | Archivos ASS desde `analisis/palabras.json` |
+| Subtítulos incrustados automáticamente en el modo edición | Pendiente (fase 4) | Archivos ASS desde `analisis/palabras.json`. En animación ya hay SRT/marcas y consulta por `t` con `produccion.py`; ver `25d.md` |
 | Capas con transparencia | No disponible | Modo `--alfa` en `render.mjs` (PNG con transparencia y ProRes 4444) |
-| Etiquetas de color y limitador de pico | No disponible | Mejora "perfil de publicación", pendiente de aprobación |
+| Color HDR/ICC y limitación de pico de cualquier mezcla externa | No disponible | Gestión de color y cadena de audio específica; SDR BT.709 ya está implementado y `musica.py --sincro` sí normaliza su mezcla |
 
 Si el usuario pide algo de esta tabla, díselo antes de empezar y ofrece lo que sí se puede hacer.
 
@@ -145,3 +145,11 @@ Si el usuario pide algo de esta tabla, díselo antes de empezar y ofrece lo que 
 | **Rendimiento medido** | RTX 3050 / Ryzen 7 7445HS. Material de 33 s: normalizar 5–6 s por fuente con NVENC; transcribir 18–23 s con large-v3-turbo en CPU; revisión de 20 s en 5 s; final 1080×1920 con x264 `slow` en 10–16 s. Con 10 minutos de grabación, la transcripción en CPU rondaría los 6–7 minutos (estimación lineal, sin medir). |
 | **Limitaciones** | Whisper adelanta los tiempos y omite muletillas (se corrige con energía, ver `edicion.md`). La elección de tomas es heurística. Sin subtítulos, B-roll, música ni color todavía. |
 | **Alternativas** | Sin faster-whisper: nivel núcleo (cortes por silencios). Sin codificador por hardware: `libx264`. Poco disco: borrar `cache/` y `analisis/normalizados/` al terminar (se regeneran). |
+
+### 10. Recursos 2.5D y sincronía en animación (opcionales)
+
+- Referencias y plan de planos: Python, Pillow, FFmpeg/FFprobe; no necesitan Blender ni ASR.
+- Transcripción de voz: `faster-whisper` y modelo local; probado large-v3-turbo en CPU/int8. `produccion.py --transcribir` usa FFmpeg para decodificar y evita la incompatibilidad observada de PyAV. No acredita alineación exacta.
+- Recursos 3D: Blender **5.2.3 LTS** con EEVEE/OpenGL, probado en Windows/RTX 3050. `recursos25d.py` exige la GPU real, genera PNG y registra huellas; no instala Blender ni cambia preferencias del sistema. Otros sistemas/backends siguen sin probar.
+- Reproducción: `kit/secuencia.js` usa `fetch` e `ImageBitmap` de Chromium, con cierre de bitmaps expulsados. El render espera `seek(t)` asíncrono.
+- Uso y límites: [25d.md](25d.md). No añade exportación de video con alfa, rig universal, generador de voces ni publicación.

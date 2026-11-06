@@ -20,6 +20,7 @@ import os from 'node:os';
 import { createRequire } from 'node:module';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { huellaProyecto } from './cache.mjs';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const arg = k => { const a = process.argv.find(x => x === '--' + k || x.startsWith('--' + k + '=')); return a ? (a.split('=')[1] ?? true) : null; };
@@ -280,7 +281,10 @@ try {
       const modo = arg('borrador') ? 'borrador' : 'final', enc = cfg.codificacion[modo];
       // segmentos de 5 s: si se interrumpe, al relanzar solo rehace los que faltan (cada modo tiene los suyos)
       const n = FPS * DUR, SEG = FPS * 5;
-      const tmp = path.join(root, 'review', 'segments-' + modo + '-bt709-tv'); fs.mkdirSync(tmp, { recursive: true });
+      // Otro espacio de caché: los segmentos antiguos no acreditan esta conversión de color.
+      const firma = huellaProyecto(root, { salida: cfg.salida.carpeta,
+        extra: { cfg, pagina: arg('pagina'), modo, color: COLOR_SDR } });
+      const tmp = path.join(root, 'review', 'segments-' + modo + '-bt709-tv-' + firma); fs.mkdirSync(tmp, { recursive: true });
       const nSeg = Math.ceil(n / SEG), segPath = k => path.join(tmp, `s${String(k).padStart(3, '0')}.mp4`);
       const okSeg = k => {
         if (!fs.existsSync(segPath(k))) return false;
@@ -296,12 +300,30 @@ try {
           const k = todo[next++], a = k * SEG, b = Math.min(n, a + SEG), part = segPath(k) + '.part.mp4';
           const ff = spawn('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'image2pipe', '-c:v', 'png', '-framerate', String(FPS), '-i', '-',
             '-c:v', 'libx264', '-preset', enc.preset, '-crf', String(enc.crf), ...COLOR_SDR, '-pix_fmt', 'yuv420p', '-r', String(FPS), part], { stdio: ['pipe', 'inherit', 'inherit'] });
-          for (let i = a; i < b; i++) {
-            const buf = await foto(page, i / FPS, undefined, 'png');
-            if (!ff.stdin.write(buf)) await new Promise(r => ff.stdin.once('drain', r));
-            if (++hechos % (FPS * 5) === 0) console.log(`${hechos}/${todo.length * SEG}  ${((Date.now() - t0) / 1000).toFixed(0)} s`);
+          let errorFF;
+          // Registrar desde spawn: FFmpeg puede salir antes de terminar de enviar los PNG.
+          const finFF = new Promise(resolve => {
+            ff.once('error', e => { errorFF = e; resolve(-1); });
+            ff.once('close', resolve);
+          });
+          ff.stdin.on('error', e => { errorFF = e; });
+          const fallo = codigo => new Error(`FFmpeg falló en el segmento ${k} (código ${codigo ?? ff.exitCode}; ${errorFF?.message || 'salida prematura'})`);
+          try {
+            for (let i = a; i < b; i++) {
+              const buf = await foto(page, i / FPS, undefined, 'png');
+              if (errorFF || ff.exitCode !== null) throw fallo();
+              if (!ff.stdin.write(buf)) await Promise.race([
+                new Promise(r => ff.stdin.once('drain', r)),
+                finFF.then(codigo => { throw fallo(codigo); }),
+              ]);
+              if (++hechos % (FPS * 5) === 0) console.log(`${hechos}/${todo.length * SEG}  ${((Date.now() - t0) / 1000).toFixed(0)} s`);
+            }
+            ff.stdin.end();
+            const codigo = await finFF;
+            if (codigo !== 0 || errorFF) throw fallo(codigo);
+          } catch (e) {
+            ff.stdin.destroy(); ff.kill(); await finFF; throw e;
           }
-          ff.stdin.end(); await new Promise(r => ff.on('close', r));
           fs.renameSync(part, segPath(k));
         }
         await page.close();

@@ -104,11 +104,29 @@ def lufs():
     return float(re.findall(r"I:\s+(-?\d+(?:\.\d+)?)\s+LUFS", r.stderr)[-1])
 
 
+def normalizar_impactos():
+    """Dos pasadas: deja margen para que un impacto breve no llegue al límite en AAC."""
+    objetivo = 'loudnorm=I=-14:TP=-1.5:LRA=9'
+    medir = subprocess.run(['ffmpeg', '-hide_banner', '-nostats', '-i', SALIDA,
+                            '-af', objetivo + ':print_format=json', '-f', 'null', '-'],
+                           capture_output=True, text=True, check=True)
+    m = json.loads(medir.stderr[medir.stderr.rfind('{'):medir.stderr.rfind('}') + 1])
+    filtro = objetivo + ''.join(':' + k + '=' + m[v] for k, v in
+                               [('measured_I', 'input_i'), ('measured_TP', 'input_tp'),
+                                ('measured_LRA', 'input_lra'), ('measured_thresh', 'input_thresh'),
+                                ('offset', 'target_offset')]) + ':linear=true'
+    temporal = SALIDA + '.normalizado.wav'
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', SALIDA, '-af', filtro,
+                    '-ar', str(SR), '-ac', '2', '-c:a', 'pcm_s16le', temporal], check=True)
+    os.replace(temporal, SALIDA)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--pista", help="música del usuario; sus pulsos se miden y se escriben en beats.json")
     ap.add_argument("--bpm", type=float, help="con --pista: tempo aproximado si la medición automática se equivoca (p. ej. el doble o la mitad)")
     ap.add_argument("--voz", help="narración que se mezcla encima, con la música bajada mientras suena")
+    ap.add_argument("--sincro", help="sincro.json de produccion.py: efectos en fotogramas de acción, sustituye GOLPES")
     a = ap.parse_args()
     mix = np.zeros((2, N))
 
@@ -125,11 +143,26 @@ def main():
             poner(mix, piano(ch[k % len(ch)]), t, 0.2)
             if k % POR_COMPAS == 0:
                 poner(mix, piano(ch[0] - 24, 4.0), t, 0.25)
-        for nombre, pulsos in GOLPES.items():
+        for nombre, pulsos in ({} if a.sincro else GOLPES).items():
             fn, g = EFECTOS[nombre]
             for k in pulsos:
                 if k < len(beats):
                     poner(mix, fn(), beats[k], g)
+
+    if a.sincro:
+        with open(a.sincro, encoding="utf-8-sig") as fh:
+            sincro = json.load(fh)
+        if sincro.get("fps") != CFG["video"]["fps"] or sincro.get("fotogramas") != round(DUR * CFG["video"]["fps"]):
+            raise ValueError("sincro.json no coincide con los fps/duración; ejecuta produccion.py otra vez")
+        for evento in sincro["impactos"]:
+            nombre, t = evento.get("efecto"), evento["fotograma"] / sincro["fps"]
+            if nombre is None:
+                continue
+            if nombre not in EFECTOS or not 0 <= t < DUR:
+                raise ValueError(f"Impacto inválido en sincro.json: {evento}")
+            fn, _ = EFECTOS[nombre]
+            poner(mix, fn(), t, evento["ganancia"])
+            print(f"impacto {evento['id']}: f{evento['fotograma']} / {t:.6f} s")
 
     json.dump({"nota": "Cuadrícula de pulsos generada por audio/musica.py " + ("(medida en la pista)" if a.pista else "(la música se sintetiza sobre ella)"),
                "bpm": round(bpm, 2), "beatsPerBar": POR_COMPAS, "bars": len(beats) // POR_COMPAS, "beats": beats},
@@ -148,6 +181,9 @@ def main():
         if abs(l + 14) < 0.3:
             break
         x *= 10 ** ((-14 - l) / 20)
+    if a.sincro:
+        normalizar_impactos()
+        l = lufs()
     print(f"audio/final.wav  {l:.1f} LUFS")
 
     # Verificación: ¿cae cada pulso de beats.json sobre un ataque real del audio?

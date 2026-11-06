@@ -25,6 +25,7 @@ def ejecutar(*args, cwd=None):
 with tempfile.TemporaryDirectory(prefix='motion-color-sdr-') as carpeta:
     proyecto = Path(carpeta)
     shutil.copy2(REPO / 'motion-studio/assets/plantilla/render.mjs', proyecto / 'render.mjs')
+    shutil.copy2(REPO / 'motion-studio/assets/plantilla/cache.mjs', proyecto / 'cache.mjs')
     config = dict(video=dict(ancho=256, alto=64, fps=4, duracion=1), workers=1,
                   salida=dict(carpeta='exportaciones', nombre='carta'))
     (proyecto / 'motion.config.json').write_text(json.dumps(config), encoding='utf-8')
